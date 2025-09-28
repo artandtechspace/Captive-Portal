@@ -137,8 +137,12 @@
 </script>
 
 <svelte:head>
-  <title>WiFi-Login</title>
+     <title>WiFi-Login</title>
 </svelte:head>
+
+<style lang="postcss">
+    @reference "tailwindcss";
+</style>
 
 <div class="blur-background relative min-h-screen bg-gray-100">
   <div class="container mx-auto max-w-lg p-5 min-h-screen flex items-center justify-center">

@@ -14,5 +14,10 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "svelte": "^5.39.6",
     "vite": "^6.3.6"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "install": "^0.13.0",
+    "tailwindcss": "^4.1.13"
   }
 }
