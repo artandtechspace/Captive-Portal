@@ -1,5 +1,6 @@
 <script>
     import {onMount} from 'svelte';
+    import {t} from '$lib/i18n';
 
     let username = '';
     let password = '';
@@ -45,7 +46,7 @@
 
     async function apiRequest(path, body) {
         if (!zoneId) {
-            throw new Error('Die Zonenkonfiguration ist nicht verfügbar.');
+            throw new Error($t('errors.zoneConfigMissing'));
         }
 
         const response = await fetch(`/api/captiveportal/access/${path}/${zoneId}/`, {
@@ -57,7 +58,7 @@
         });
 
         if (!response.ok) {
-            throw new Error('unable to connect to authentication server');
+            throw new Error($t('errors.serverUnavailable'));
         }
 
         return await response.json();
@@ -80,7 +81,7 @@
                 loginState = 'password';
             }
         } catch (error) {
-            showErrorMessage(error.message || 'unable to connect to authentication server');
+            showErrorMessage(error.message || $t('errors.serverUnavailable'));
             loginState = 'password';
         }
     }
@@ -96,10 +97,10 @@
             } else {
                 username = '';
                 password = '';
-                showErrorMessage('authentication failed');
+                showErrorMessage($t('errors.authenticationFailed'));
             }
         } catch (error) {
-            showErrorMessage(error.message || 'unable to connect to authentication server');
+            showErrorMessage(error.message || $t('errors.serverUnavailable'));
         }
     }
 
@@ -112,10 +113,10 @@
             if (data.clientState === 'AUTHORIZED') {
                 handleSuccessRedirect(false);
             } else {
-                showErrorMessage('login failed');
+                showErrorMessage($t('errors.anonymousFailed'));
             }
         } catch (error) {
-            showErrorMessage(error.message || 'unable to connect to authentication server');
+            showErrorMessage(error.message || $t('errors.serverUnavailable'));
         }
     }
 
@@ -127,7 +128,7 @@
             await apiRequest('logoff', buildPayload('', ''));
             window.location.reload();
         } catch (error) {
-            showErrorMessage(error.message || 'unable to connect to authentication server');
+            showErrorMessage(error.message || $t('errors.serverUnavailable'));
         }
     }
 
@@ -137,7 +138,7 @@
 </script>
 
 <svelte:head>
-    <title>WiFi-Login</title>
+    <title>{$t('pageTitle')}</title>
 </svelte:head>
 
 <style lang="postcss">
@@ -148,17 +149,14 @@
     <div class="container mx-auto max-w-lg p-5 min-h-screen flex items-center justify-center">
         <div class="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 w-full">
             <div class="flex justify-between items-center mb-6">
-                <img alt="ATS Logo" class="w-24" src="/images/ats-logo.png"/>
-                <img alt="OPNsense Logo" class="w-32 justify-end" src="/images/opnsense.png"/>
+                <img alt={$t('logos.atsAlt')} class="w-24" src="/images/ats-logo.png"/>
+                <img alt={$t('logos.opnsenseAlt')} class="w-32 justify-end" src="/images/opnsense.png"/>
             </div>
             <header class="mb-10">
                 <div class="text-justify">
-                    <h1 class="text-2xl font-medium mb-2">Willkommen im ATS-Netzwerk</h1>
+                    <h1 class="text-2xl font-medium mb-2">{$t('headerTitle')}</h1>
                     <p class="mt-2 text-sm">
-                        Indem Sie das Netzwerk nutzen, erklären Sie sich damit einverstanden, die folgenden
-                        Nutzungsbedingungen einzuhalten. Wenn Sie nicht einverstanden sind, dürfen Sie das Netzwerk
-                        nicht
-                        nutzen.
+                        {$t('headerDescription')}
                     </p>
                 </div>
             </header>
@@ -167,14 +165,14 @@
                 {#if isPasswordLoginVisible}
                     <form class="form-signin" on:submit|preventDefault={handleLogin}>
                         <div class="mb-6">
-                            <h3 class="font-medium text-xl mb-2">Anmeldung im ATS-Netzwerk</h3>
+                            <h3 class="font-medium text-xl mb-2">{$t('loginFormTitle')}</h3>
                             <p class="text-sm text-gray-600">
-                                Geben Sie Ihren Benutzernamen und Ihr Passwort ein, um sich anzumelden:
+                                {$t('loginFormDescription')}
                             </p>
                         </div>
                         <div class="mb-4">
                             <label for="inputUsername"
-                                   class="block text-gray-700 text-sm font-medium mb-2">Benutzername</label>
+                                   class="block text-gray-700 text-sm font-medium mb-2">{$t('usernameLabel')}</label>
                             <input
                                     id="inputUsername"
                                     class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-600 mb-3 focus:outline-none focus:shadow-outline"
@@ -185,7 +183,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="inputPassword"
-                                   class="block text-gray-700 text-sm font-medium mb-2">Passwort</label>
+                                   class="block text-gray-700 text-sm font-medium mb-2">{$t('passwordLabel')}</label>
                             <input
                                     type="password"
                                     id="inputPassword"
@@ -204,12 +202,13 @@
                                     required
                             />
                             <label for="termsCheckbox" class="text-sm ml-2">
-                                Ich stimme den
-                                <a class="text-blue-600 font-semibold hover:text-blue-950 after:content-['_↗']"
+                                {$t('termsAgreement.prefix')}{' '}
+                                <a aria-label={$t('termsLinkLabel')}
+                                   class="text-blue-600 font-semibold hover:text-blue-950 after:content-['_↗']"
                                    href="/terms" target="_blank"
-                                >Nutzungsbedingungen</a
-                                >
-                                zu.
+                                >{$t('termsAgreement.linkText')}</a
+                                >{' '}
+                                {$t('termsAgreement.suffix')}
                             </label>
                         </div>
 
@@ -218,7 +217,7 @@
                                 type="submit"
                                 disabled={!canSubmit}
                         >
-                            Anmelden
+                            {$t('loginButton')}
                         </button>
                     </form>
                 {/if}
@@ -229,7 +228,7 @@
                                 class="btn btn-primary w-full py-2 px-4 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                                 on:click|preventDefault={handleAnonymousLogin}
                         >
-                            Anonym anmelden
+                            {$t('anonymousButton')}
                         </button>
                     </div>
                 {/if}
@@ -240,7 +239,7 @@
                                 class="btn btn-primary w-full py-2 px-4 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:shadow-outline"
                                 on:click|preventDefault={handleLogout}
                         >
-                            Abmelden
+                            {$t('logoutButton')}
                         </button>
                     </div>
                 {/if}
@@ -252,11 +251,11 @@
                         <button
                                 class="absolute top-0 bottom-0 right-0 px-4 py-3"
                                 type="button"
-                                aria-label="Fehler schließen"
+                                aria-label={$t('errors.closeErrorAria')}
                                 on:click={closeError}
                         >
                             <svg class="fill-current h-6 w-6 text-red-500" role="img" viewBox="0 0 20 20">
-                                <title>Schließen</title>
+                                <title>{$t('errors.closeErrorTitle')}</title>
                                 <path
                                         d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"
                                 />
