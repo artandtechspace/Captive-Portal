@@ -170,7 +170,8 @@
         <div class="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 w-full">
             <div class="flex justify-between items-center mb-6">
                 <img alt={$t('logos.atsAlt')} class="w-24" src="/images/ats-logo.png"/>
-                <a aria-label={$t('logos.opnsenseAlt')} class="justify-end" href="https://opnsense.org/" rel="noopener noreferrer" target="_blank">
+                <a aria-label={$t('logos.opnsenseAlt')} class="justify-end" href="https://opnsense.org/"
+                   rel="noopener noreferrer" target="_blank">
                     <img alt={$t('logos.opnsenseAlt')} class="w-32" src="/images/opnsense.png"/>
                 </a>
             </div>

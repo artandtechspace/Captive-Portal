@@ -56,9 +56,7 @@
         filter: blur(4px);
         z-index: -1;
     }
-</style>
 
-<style>
     .language-switcher {
         position: fixed;
         top: 1rem;
