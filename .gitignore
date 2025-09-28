@@ -91,7 +91,13 @@ fabric.properties
 
 ### macOS ###
 # General
+node_modules
+.build
+.env
 .DS_Store
+.svelte-kit
+.vscode
+.idea
 .AppleDouble
 .LSOverride
 
