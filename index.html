@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <meta name="robots" content="index, follow, noodp, noydir"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta name="copyright" content=""/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+
+    <title>WiFi-Login</title>
+    <!-- static zone info -->
+    <script type="text/javascript" src="js/zone.js"></script>
+    <!-- Tailwind CSS -->
+    <link href="css/output.css" rel="stylesheet">
+    <!-- Alpine JS -->
+    <script src="js/jquery-3.7.1.min.js"></script>
+
+    <style>
+        body {
+            background-image: url('images/landscape_poli.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+
+        .blur-background::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            filter: blur(4px);
+            z-index: -1;
+        }
+
+    </style>
+    <script>
+        function getURLparams() {
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for (var i = 0; i < hashes.length; i++) {
+                hash = hashes[i].split('=');
+                vars.push(hash[0]);
+                vars[hash[0]] = hash[1];
+            }
+            return vars;
+        }
+
+        $(document).ready(function () {
+            $("#termsCheckbox").change(function () {
+                if (this.checked) {
+                    $("#signin").removeAttr("disabled");
+                } else {
+                    $("#signin").attr("disabled", true);
+                }
+            });
+
+            /**
+             * logon action
+             */
+            $("#signin").click(function (event) {
+                event.preventDefault();
+                // hide alerts
+                $("#alertMSG").addClass("hidden");
+                // try to login
+                $.ajax({
+                    type: "POST",
+                    url: "/api/captiveportal/access/logon/" + zoneid + "/",
+                    dataType: "json",
+                    data: {user: $("#inputUsername").val(), password: $("#inputPassword").val()}
+                }).done(function (data) {
+                    // redirect on successful login
+                    if (data['clientState'] === 'AUTHORIZED') {
+                        if (getURLparams()['redirurl'] !== undefined) {
+                            window.location = 'https://' + getURLparams()['redirurl'] + '?refresh';
+                        } else {
+                            // no target, reload page
+                            window.location.reload();
+                        }
+                    } else {
+                        $("#inputUsername").val("");
+                        $("#inputPassword").val("");
+                        $("#errorMSGtext").html("authentication failed");
+                        $("#alertMSG").removeClass("hidden");
+                    }
+                }).fail(function () {
+                    $("#errorMSGtext").html("unable to connect to authentication server");
+                    $("#alertMSG").removeClass("hidden");
+                });
+            });
+
+            /**
+             * login anonymous, only applicable when server is configured without authentication
+             */
+            $("#signin_anon").click(function (event) {
+                event.preventDefault();
+                // hide alerts
+                $("#alertMSG").addClass("hidden");
+                // try to login
+                $.ajax({
+                    type: "POST",
+                    url: "/api/captiveportal/access/logon/" + zoneid + "/",
+                    dataType: "json",
+                    data: {user: '', password: ''}
+                }).done(function (data) {
+                    // redirect on successful login
+                    if (data['clientState'] === 'AUTHORIZED') {
+                        if (getURLparams()['redirurl'] !== undefined) {
+                            window.location = 'http://' + getURLparams()['redirurl'] + '?refresh';
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        $("#inputUsername").val("");
+                        $("#inputPassword").val("");
+                        $("#errorMSGtext").html("login failed");
+                        $("#alertMSG").removeClass("hidden");
+                    }
+                }).fail(function () {
+                    $("#errorMSGtext").html("unable to connect to authentication server");
+                    $("#alertMSG").removeClass("hidden");
+                });
+            });
+
+            /**
+             * logoff action
+             */
+            $("#logoff").click(function (event) {
+                event.preventDefault();
+                // hide alerts
+                $("#alertMSG").addClass("hidden");
+                // try to login
+                $.ajax({
+                    type: "POST",
+                    url: "/api/captiveportal/access/logoff/" + zoneid + "/",
+                    dataType: "json",
+                    data: {user: '', password: ''}
+                }).done(function (data) {
+                    // refresh page
+                    window.location.reload();
+                }).fail(function () {
+                    $("#errorMSGtext").html("unable to connect to authentication server");
+                    $("#alertMSG").removeClass("hidden");
+                });
+            });
+
+            /**
+             * close / hide error message
+             */
+            $("#btnCloseError").click(function () {
+                $("#alertMSG").addClass("hidden");
+            });
+
+            /**
+             * execute after pageload
+             */
+            $.ajax({
+                type: "POST",
+                url: "/api/captiveportal/access/status/" + zoneid + "/",
+                dataType: "json",
+                data: {user: $("#inputUsername").val(), password: $("#inputPassword").val()}
+            }).done(function (data) {
+                if (data['clientState'] === 'AUTHORIZED') {
+                    $("#logout_frm").removeClass('hidden');
+                } else if (data['authType'] === 'none') {
+                    $("#login_none").removeClass('hidden');
+                } else {
+                    $("#login_password").removeClass('hidden');
+                }
+            }).fail(function () {
+                $("#errorMSGtext").html("unable to connect to authentication server");
+                $("#alertMSG").removeClass("hidden");
+            });
+
+        });
+    </script>
+</head>
+
+<body class="blur-background relative min-h-screen bg-gray-100">
+<div class="container mx-auto max-w-lg p-5 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
+        <div class="flex justify-between items-center mb-6">
+            <img class="w-24" src="images/ats-logo.png" alt="ats_logo">
+            <img class="w-32 justify-end" src="images/opnsense.png" alt="opnsense_logo">
+        </div>
+        <header class="mb-10">
+            <div class="text-justify">
+                <h1 class="text-2xl font-medium mb-2">Willkommen im ATS-Netzwerk</h1>
+                <p class="mt-2 text-sm">Indem Sie das Netzwerk nutzen, erklären Sie sich damit
+                    einverstanden, die folgenden Nutzungsbedingungen einzuhalten. Wenn Sie nicht einverstanden sind,
+                    dürfen Sie das Netzwerk nicht nutzen.</p>
+            </div>
+        </header>
+
+        <main>
+            <!-- Anmeldung mit Passwort -->
+            <div id="login_password" class="">
+                <form class="form-signin">
+                    <div class="mb-6">
+                        <h3 class="font-medium text-xl mb-2">Anmeldung im ATS-Netzwerk</h3>
+                        <p class="text-sm text-gray-600">Geben Sie Ihren Benutzernamen und Ihr Passwort ein, um sich
+                            anzumelden:</p>
+                    </div>
+                    <div class="mb-4">
+                        <label for="inputUsername"
+                               class="block text-gray-700 text-sm font-medium mb-2">Benutzername</label>
+                        <input type="text" id="inputUsername"
+                               class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-600 mb-3 focus:outline-none focus:shadow-outline"
+                               required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputPassword" class="block text-gray-700 text-sm font-medium mb-2">Passwort</label>
+                        <input type="password" id="inputPassword"
+                               class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-600 mb-3 focus:outline-none focus:shadow-outline"
+                               required>
+                    </div>
+                    <div class="mb-6">
+                        <input type="checkbox" id="termsCheckbox" required>
+                        <label for="termsCheckbox" class="text-sm ml-2">
+                            Ich stimme den <a class="text-blue-600 text-bold hover:text-blue-950 after:content-['_↗']"
+                                              href="terms.html"
+                                              target="_blank">Nutzungsbedingungen</a> zu.
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary w-full py-2 px-4 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                            id="signin" type="button" disabled>Anmelden
+                    </button>
+                </form>
+            </div>
+
+            <!-- Anonyme Anmeldung -->
+            <div id="login_none" class="hidden mt-6">
+                <button class="btn btn-primary w-full py-2 px-4 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        id="signin_anon">Anonym anmelden
+                </button>
+            </div>
+
+            <!-- Abmelden Formular -->
+            <div id="logout_frm" class="hidden mt-6">
+                <button class="btn btn-primary w-full py-2 px-4 rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                        id="logoff">Abmelden
+                </button>
+            </div>
+
+            <!-- Error message -->
+            <div class="alert bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative hidden"
+                 role="alert"
+                 id="alertMSG">
+                <span class="block sm:inline" id="errorMSGtext">Sample error message</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 close" id="btnCloseError">
+            <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 20 20"><title>Schließen</title><path
+                    d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path></svg>
+        </span>
+            </div>
+        </main>
+
+    </div>
+</div>
+
+</body>
+
+</html>
