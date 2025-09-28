@@ -45,23 +45,43 @@
     }
 
     async function apiRequest(path, body) {
-        if (!zoneId) {
-            throw new Error($t('errors.zoneConfigMissing'));
+        const endpoints = zoneId
+            ? [`/api/captiveportal/access/${path}/${zoneId}/`, `/api/captiveportal/access/${path}/`]
+            : [`/api/captiveportal/access/${path}/`];
+
+        let lastError = null;
+
+        for (let index = 0; index < endpoints.length; index += 1) {
+            const endpoint = endpoints[index];
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body
+                });
+
+                if (response.ok) {
+                    return await response.json();
+                }
+
+                if (response.status === 404 && index < endpoints.length - 1) {
+                    continue;
+                }
+
+                throw new Error($t('errors.serverUnavailable'));
+            } catch (error) {
+                lastError = error instanceof Error ? error : new Error($t('errors.serverUnavailable'));
+
+                if (index < endpoints.length - 1) {
+                    continue;
+                }
+            }
         }
 
-        const response = await fetch(`/api/captiveportal/access/${path}/${zoneId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            },
-            body
-        });
-
-        if (!response.ok) {
-            throw new Error($t('errors.serverUnavailable'));
-        }
-
-        return await response.json();
+        throw lastError ?? new Error($t('errors.serverUnavailable'));
     }
 
     function showErrorMessage(message) {
@@ -150,7 +170,9 @@
         <div class="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 w-full">
             <div class="flex justify-between items-center mb-6">
                 <img alt={$t('logos.atsAlt')} class="w-24" src="/images/ats-logo.png"/>
-                <img alt={$t('logos.opnsenseAlt')} class="w-32 justify-end" src="/images/opnsense.png"/>
+                <a aria-label={$t('logos.opnsenseAlt')} class="justify-end" href="https://opnsense.org/" rel="noopener noreferrer" target="_blank">
+                    <img alt={$t('logos.opnsenseAlt')} class="w-32" src="/images/opnsense.png"/>
+                </a>
             </div>
             <header class="mb-10">
                 <div class="text-justify">
@@ -178,7 +200,10 @@
                                     class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-600 mb-3 focus:outline-none focus:shadow-outline"
                                     bind:value={username}
                                     required
-                                    autocomplete="username"
+                                    autocomplete="off"
+                                    autocapitalize="none"
+                                    autocorrect="off"
+                                    autofocus
                             />
                         </div>
                         <div class="mb-3">
@@ -267,3 +292,10 @@
         </div>
     </div>
 </div>
+
+<footer class="deciso-brand">
+    <a aria-label="Deciso" href="https://www.deciso.com" rel="noopener noreferrer" target="_blank">
+        <img alt="Deciso" class="regular-logo" src="/images/deciso-brand.svg"/>
+        <img alt="Deciso" class="hover-logo" src="/images/deciso-brand-hover.svg"/>
+    </a>
+</footer>
