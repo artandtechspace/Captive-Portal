@@ -3,12 +3,12 @@
 </script>
 
 <svelte:head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-    <meta name="robots" content="index, follow, noodp, noydir"/>
-    <meta name="keywords" content=""/>
-    <meta name="description" content=""/>
-    <meta name="copyright" content=""/>
-    <link rel="icon" href="/favicon/favicon.ico"/>
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"/>
+    <meta content="index, follow, noodp, noydir" name="robots"/>
+    <meta content="" name="keywords"/>
+    <meta content="" name="description"/>
+    <meta content="" name="copyright"/>
+    <link href="/favicon/favicon.ico" rel="icon"/>
     <script src="/js/zone.js"></script>
 </svelte:head>
 
