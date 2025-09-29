@@ -1,7 +1,21 @@
-<script>
+<script lang="ts">
     import {t} from '$lib/i18n';
 
-    $: terms = $t('terms') ?? {sections: []};
+    interface TermsSection {
+        title?: string;
+        paragraphs?: string[];
+        list?: string[];
+    }
+
+    interface TermsContent {
+        pageTitle?: string;
+        heading?: string;
+        sections?: TermsSection[];
+    }
+
+    const emptyTerms: TermsContent = {pageTitle: '', heading: '', sections: []};
+
+    $: terms = ($t('terms') as TermsContent | undefined) ?? emptyTerms;
     $: sections = terms.sections ?? [];
 </script>
 

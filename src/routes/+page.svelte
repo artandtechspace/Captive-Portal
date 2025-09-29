@@ -1,20 +1,48 @@
-<script>
+<script lang="ts">
     import {onMount} from 'svelte';
     import {t} from '$lib/i18n';
+
+    type LoginState = 'loading' | 'password' | 'anonymous' | 'authorized';
+    type ApiPath = 'status' | 'logon' | 'logoff';
+
+    interface CaptivePortalResponse {
+        clientState?: string;
+        authType?: string;
+    }
+
+    interface WindowWithZoneId extends Window {
+        zoneid?: string;
+    }
 
     let username = '';
     let password = '';
     let termsAccepted = false;
     let zoneId = '';
-    let loginState = 'loading';
+    let loginState: LoginState = 'loading';
     let errorMessage = '';
     let showError = false;
 
-    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const params: URLSearchParams | null =
+        typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+
+    const getTranslationString = (key: string, fallback: string): string => {
+        const value = $t(key);
+        return typeof value === 'string' ? value : fallback;
+    };
+
+    const getErrorMessage = (error: unknown, fallbackKey: string, fallbackMessage: string): string => {
+        if (error instanceof Error && error.message) {
+            return error.message;
+        }
+
+        return getTranslationString(fallbackKey, fallbackMessage);
+    };
 
     onMount(() => {
-        zoneId = typeof window !== 'undefined' && window.zoneid ? window.zoneid : '';
-        checkStatus();
+        if (typeof window !== 'undefined') {
+            zoneId = (window as WindowWithZoneId).zoneid ?? '';
+        }
+        void checkStatus();
     });
 
     $: canSubmit = termsAccepted && username.trim().length > 0 && password.trim().length > 0;
@@ -22,19 +50,19 @@
     $: isAnonymousLoginVisible = loginState === 'anonymous';
     $: isLogoutVisible = loginState === 'authorized';
 
-    function buildPayload(user, pwd) {
+    function buildPayload(user: string, pwd: string): URLSearchParams {
         const payload = new URLSearchParams();
         payload.set('user', user);
         payload.set('password', pwd);
         return payload;
     }
 
-    function getRedirectUrl() {
+    function getRedirectUrl(): string | null {
         if (!params) return null;
         return params.get('redirurl');
     }
 
-    function handleSuccessRedirect(useHttps = true) {
+    function handleSuccessRedirect(useHttps = true): void {
         const redir = getRedirectUrl();
         if (redir) {
             const protocol = useHttps ? 'https://' : 'http://';
@@ -44,12 +72,12 @@
         }
     }
 
-    async function apiRequest(path, body) {
+    async function apiRequest(path: ApiPath, body: URLSearchParams): Promise<CaptivePortalResponse> {
         const endpoints = zoneId
             ? [`/api/captiveportal/access/${path}/${zoneId}/`, `/api/captiveportal/access/${path}/`]
             : [`/api/captiveportal/access/${path}/`];
 
-        let lastError = null;
+        let lastError: Error | null = null;
 
         for (let index = 0; index < endpoints.length; index += 1) {
             const endpoint = endpoints[index];
@@ -64,16 +92,18 @@
                 });
 
                 if (response.ok) {
-                    return await response.json();
+                    return (await response.json()) as CaptivePortalResponse;
                 }
 
                 if (response.status === 404 && index < endpoints.length - 1) {
                     continue;
                 }
 
-                throw new Error($t('errors.serverUnavailable'));
+                throw new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
             } catch (error) {
-                lastError = error instanceof Error ? error : new Error($t('errors.serverUnavailable'));
+                lastError = error instanceof Error
+                    ? error
+                    : new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
 
                 if (index < endpoints.length - 1) {
                     continue;
@@ -81,15 +111,15 @@
             }
         }
 
-        throw lastError ?? new Error($t('errors.serverUnavailable'));
+        throw lastError ?? new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
     }
 
-    function showErrorMessage(message) {
+    function showErrorMessage(message: string): void {
         errorMessage = message;
         showError = true;
     }
 
-    async function checkStatus() {
+    async function checkStatus(): Promise<void> {
         try {
             const data = await apiRequest('status', buildPayload(username, password));
 
@@ -101,12 +131,12 @@
                 loginState = 'password';
             }
         } catch (error) {
-            showErrorMessage(error.message || $t('errors.serverUnavailable'));
+            showErrorMessage(getErrorMessage(error, 'errors.serverUnavailable', 'Server unavailable.'));
             loginState = 'password';
         }
     }
 
-    async function handleLogin(event) {
+    async function handleLogin(event: Event): Promise<void> {
         event.preventDefault();
         showError = false;
 
@@ -117,14 +147,14 @@
             } else {
                 username = '';
                 password = '';
-                showErrorMessage($t('errors.authenticationFailed'));
+                showErrorMessage(getTranslationString('errors.authenticationFailed', 'Authentication failed.'));
             }
         } catch (error) {
-            showErrorMessage(error.message || $t('errors.serverUnavailable'));
+            showErrorMessage(getErrorMessage(error, 'errors.serverUnavailable', 'Server unavailable.'));
         }
     }
 
-    async function handleAnonymousLogin(event) {
+    async function handleAnonymousLogin(event: Event): Promise<void> {
         event.preventDefault();
         showError = false;
 
@@ -133,14 +163,14 @@
             if (data.clientState === 'AUTHORIZED') {
                 handleSuccessRedirect(false);
             } else {
-                showErrorMessage($t('errors.anonymousFailed'));
+                showErrorMessage(getTranslationString('errors.anonymousFailed', 'Anonymous login failed.'));
             }
         } catch (error) {
-            showErrorMessage(error.message || $t('errors.serverUnavailable'));
+            showErrorMessage(getErrorMessage(error, 'errors.serverUnavailable', 'Server unavailable.'));
         }
     }
 
-    async function handleLogout(event) {
+    async function handleLogout(event: Event): Promise<void> {
         event.preventDefault();
         showError = false;
 
@@ -148,11 +178,11 @@
             await apiRequest('logoff', buildPayload('', ''));
             window.location.reload();
         } catch (error) {
-            showErrorMessage(error.message || $t('errors.serverUnavailable'));
+            showErrorMessage(getErrorMessage(error, 'errors.serverUnavailable', 'Server unavailable.'));
         }
     }
 
-    function closeError() {
+    function closeError(): void {
         showError = false;
     }
 </script>

@@ -1,6 +1,13 @@
 import {derived, writable} from 'svelte/store';
 import {browser} from '$app/environment';
 
+interface TranslationDictionary {
+    languages?: Record<string, string>;
+    [key: string]: TranslationValue | Record<string, string> | undefined;
+}
+
+type TranslationValue = string | number | boolean | TranslationValue[] | TranslationDictionary;
+
 const translations = {
     de: {
         languageLabel: 'Sprache',
@@ -238,27 +245,29 @@ const translations = {
             ]
         }
     }
-};
+} satisfies Record<string, TranslationDictionary>;
 
-const supportedLanguages = Object.keys(translations);
+export type LanguageCode = keyof typeof translations;
 
-function getInitialLanguage() {
+const supportedLanguages = Object.keys(translations) as LanguageCode[];
+
+const getInitialLanguage = (): LanguageCode => {
     if (browser) {
-        const stored = localStorage.getItem('language');
+        const stored = localStorage.getItem('language') as LanguageCode | null;
         if (stored && supportedLanguages.includes(stored)) {
             return stored;
         }
 
-        const navigatorLanguage = navigator.language?.split('-')[0];
+        const navigatorLanguage = navigator.language?.split('-')[0] as LanguageCode | undefined;
         if (navigatorLanguage && supportedLanguages.includes(navigatorLanguage)) {
             return navigatorLanguage;
         }
     }
 
     return 'de';
-}
+};
 
-export const language = writable(getInitialLanguage());
+export const language = writable<LanguageCode>(getInitialLanguage());
 
 if (browser) {
     language.subscribe((value) => {
@@ -267,32 +276,49 @@ if (browser) {
     });
 }
 
-const getNestedValue = (object, path) => {
-    return path.split('.').reduce((accumulator, key) => {
-        if (accumulator && typeof accumulator === 'object' && key in accumulator) {
-            return accumulator[key];
+const getNestedValue = (object: TranslationDictionary, path: string): TranslationValue | undefined => {
+    const keys = path.split('.');
+    let current: unknown = object;
+
+    for (const key of keys) {
+        if (current && typeof current === 'object' && key in current) {
+            current = (current as Record<string, unknown>)[key];
+        } else {
+            return undefined;
         }
-        return undefined;
-    }, object);
+    }
+
+    return current as TranslationValue | undefined;
 };
 
 export const t = derived(language, ($language) => {
-    const dictionary = translations[$language] ?? {};
-    return (key) => getNestedValue(dictionary, key) ?? key;
+    const dictionary = translations[$language] ?? translations.de;
+    return (key: string): TranslationValue | undefined => getNestedValue(dictionary, key);
 });
 
-export const languageOptions = derived(language, ($language) => {
-    const dictionary = translations[$language] ?? translations.de;
-    const names = dictionary.languages ?? {};
+export interface LanguageOption {
+    value: LanguageCode;
+    label: string;
+}
 
+const getLanguageLabel = (code: LanguageCode, dictionary: TranslationDictionary): string => {
+    const names = dictionary.languages ?? {};
+    const fallback = translations[code]?.languages ?? {};
+    return names[code] ?? fallback[code] ?? code;
+};
+
+export const languageOptions = derived(language, ($language): LanguageOption[] => {
+    const dictionary = translations[$language] ?? translations.de;
     return supportedLanguages.map((code) => ({
         value: code,
-        label: names[code] ?? translations[code].languages[code]
+        label: getLanguageLabel(code, dictionary)
     }));
 });
 
-export function setLanguage(code) {
+export const setLanguage = (code: LanguageCode): void => {
     if (supportedLanguages.includes(code)) {
         language.set(code);
     }
-}
+};
+
+export type {TranslationDictionary, TranslationValue};

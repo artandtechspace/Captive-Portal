@@ -1,12 +1,15 @@
-<script>
+<script lang="ts">
     import "../app.css";
-    import {language, languageOptions, setLanguage, t} from '$lib/i18n';
+    import {language, languageOptions, setLanguage, t, type LanguageCode} from '$lib/i18n';
 
-    let currentLanguage = 'de';
+    let currentLanguage: LanguageCode = 'de';
     $: currentLanguage = $language;
 
-    function handleLanguageChange(event) {
-        setLanguage(event.target.value);
+    function handleLanguageChange(event: Event) {
+        const target = event.target as HTMLSelectElement | null;
+        if (target) {
+            setLanguage(target.value as LanguageCode);
+        }
     }
 </script>
 
