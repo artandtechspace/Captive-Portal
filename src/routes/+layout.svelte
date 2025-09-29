@@ -1,6 +1,6 @@
 <script lang="ts">
     import "../app.css";
-    import {language, languageOptions, setLanguage, t, type LanguageCode} from '$lib/i18n';
+    import {language, type LanguageCode, languageOptions, setLanguage, t} from '$lib/i18n';
 
     let currentLanguage: LanguageCode = 'de';
     $: currentLanguage = $language;
