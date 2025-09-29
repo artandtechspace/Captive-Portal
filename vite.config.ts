@@ -1,16 +1,7 @@
-import {sveltekit} from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
-import {defineConfig} from 'vitest/config';
+import { purgeCss } from 'vite-plugin-tailwind-purgecss';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-    plugins: [tailwindcss(), sveltekit()],
-    test: {
-        environment: 'jsdom',
-        setupFiles: ['tests/setupTests.ts'],
-        include: ['src/**/*.{test,spec}.{js,ts}', 'tests/**/*.{test,spec}.{js,ts}']
-    },
-    resolve: process.env?.VITEST
-        ? {
-            conditions: ['browser']
-        } : undefined
+	plugins: [sveltekit(), purgeCss()]
 });

@@ -1,14 +1,9 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import {t} from '$lib/i18n';
+    import {CaptivePortalClient, ClientState} from '$lib/api';
 
     type LoginState = 'loading' | 'password' | 'anonymous' | 'authorized';
-    type ApiPath = 'status' | 'logon' | 'logoff';
-
-    interface CaptivePortalResponse {
-        clientState?: string;
-        authType?: string;
-    }
 
     interface WindowWithZoneId extends Window {
         zoneid?: string;
@@ -21,6 +16,7 @@
     let loginState: LoginState = 'loading';
     let errorMessage = '';
     let showError = false;
+    const client = new CaptivePortalClient();
 
     const params: URLSearchParams | null =
         typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -50,13 +46,6 @@
     $: isAnonymousLoginVisible = loginState === 'anonymous';
     $: isLogoutVisible = loginState === 'authorized';
 
-    function buildPayload(user: string, pwd: string): URLSearchParams {
-        const payload = new URLSearchParams();
-        payload.set('user', user);
-        payload.set('password', pwd);
-        return payload;
-    }
-
     function getRedirectUrl(): string | null {
         if (!params) return null;
         return params.get('redirurl');
@@ -72,40 +61,33 @@
         }
     }
 
-    async function apiRequest(path: ApiPath, body: URLSearchParams): Promise<CaptivePortalResponse> {
-        const endpoints = zoneId
-            ? [`/api/captiveportal/access/${path}/${zoneId}/`, `/api/captiveportal/access/${path}/`]
-            : [`/api/captiveportal/access/${path}/`];
+    function showErrorMessage(message: string): void {
+        errorMessage = message;
+        showError = true;
+    }
 
+    async function requestWithFallback<T>(
+        executor: (currentZoneId: string) => Promise<{ status: number; ok: boolean; data: T | null }>
+    ): Promise<{ status: number; ok: boolean; data: T | null }> {
+        const zoneCandidates = zoneId ? [zoneId, ''] : [''];
         let lastError: Error | null = null;
 
-        for (let index = 0; index < endpoints.length; index += 1) {
-            const endpoint = endpoints[index];
-
+        for (let index = 0; index < zoneCandidates.length; index += 1) {
+            const currentZoneId = zoneCandidates[index];
             try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                    },
-                    body
-                });
+                const response = await executor(currentZoneId);
 
-                if (response.ok) {
-                    return (await response.json()) as CaptivePortalResponse;
-                }
-
-                if (response.status === 404 && index < endpoints.length - 1) {
+                if (response.status === 404 && index < zoneCandidates.length - 1) {
                     continue;
                 }
 
-                throw new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
+                return response;
             } catch (error) {
                 lastError = error instanceof Error
                     ? error
                     : new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
 
-                if (index < endpoints.length - 1) {
+                if (index < zoneCandidates.length - 1) {
                     continue;
                 }
             }
@@ -114,18 +96,21 @@
         throw lastError ?? new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
     }
 
-    function showErrorMessage(message: string): void {
-        errorMessage = message;
-        showError = true;
-    }
-
     async function checkStatus(): Promise<void> {
         try {
-            const data = await apiRequest('status', buildPayload(username, password));
+            const response = await requestWithFallback((currentZoneId) =>
+                client.getClientStatus(currentZoneId)
+            );
 
-            if (data.clientState === 'AUTHORIZED') {
+            if (!response.ok || !response.data) {
+                throw new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
+            }
+
+            const data = response.data;
+
+            if (data.clientState === ClientState.AUTHORIZED) {
                 loginState = 'authorized';
-            } else if (data.authType === 'none') {
+            } else if (data.clientState === ClientState.NOT_AUTHORIZED && data.authType === 'none') {
                 loginState = 'anonymous';
             } else {
                 loginState = 'password';
@@ -141,8 +126,17 @@
         showError = false;
 
         try {
-            const data = await apiRequest('logon', buildPayload(username, password));
-            if (data.clientState === 'AUTHORIZED') {
+            const response = await requestWithFallback((currentZoneId) =>
+                client.logon(currentZoneId, {user: username, password})
+            );
+
+            if (!response.ok || !response.data) {
+                throw new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
+            }
+
+            const data = response.data;
+
+            if (data.clientState === ClientState.AUTHORIZED) {
                 handleSuccessRedirect(true);
             } else {
                 username = '';
@@ -159,8 +153,17 @@
         showError = false;
 
         try {
-            const data = await apiRequest('logon', buildPayload('', ''));
-            if (data.clientState === 'AUTHORIZED') {
+            const response = await requestWithFallback((currentZoneId) =>
+                client.logon(currentZoneId, {user: '', password: ''})
+            );
+
+            if (!response.ok || !response.data) {
+                throw new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
+            }
+
+            const data = response.data;
+
+            if (data.clientState === ClientState.AUTHORIZED) {
                 handleSuccessRedirect(false);
             } else {
                 showErrorMessage(getTranslationString('errors.anonymousFailed', 'Anonymous login failed.'));
@@ -175,7 +178,14 @@
         showError = false;
 
         try {
-            await apiRequest('logoff', buildPayload('', ''));
+            const response = await requestWithFallback((currentZoneId) =>
+                client.logoff(currentZoneId)
+            );
+
+            if (!response.ok) {
+                throw new Error(getTranslationString('errors.serverUnavailable', 'Server unavailable.'));
+            }
+
             window.location.reload();
         } catch (error) {
             showErrorMessage(getErrorMessage(error, 'errors.serverUnavailable', 'Server unavailable.'));
@@ -191,7 +201,7 @@
     <title>{$t('pageTitle')}</title>
 </svelte:head>
 
-<style lang="postcss">
+<style>
     @reference "tailwindcss";
 </style>
 
