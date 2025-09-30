@@ -33,8 +33,8 @@ export const TermsPage = () => {
       <div className="container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
         <Card className="w-full max-w-3xl border border-white/60 bg-white/90 backdrop-blur shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between">
-            <img alt={String((t('logos.atsAlt') as string) ?? 'ATS')} className="w-24" src="/images/ats-logo.png" />
-            <img alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')} className="w-32" src="/images/opnsense.png" />
+            <img alt={String((t('logos.atsAlt') as string) ?? 'ATS')} className="w-24" src="/src/assets/images/ats-logo.png" />
+            <img alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')} className="w-32" src="/src/assets/images/opnsense.png" />
           </CardHeader>
           <CardContent className="space-y-6">
             <CardTitle className="text-2xl font-medium text-foreground">

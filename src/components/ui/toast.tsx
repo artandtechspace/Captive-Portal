@@ -13,7 +13,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      'fixed top-4 right-4 z-[100] flex max-h-screen w-full max-w-sm flex-col-reverse gap-2 p-4 sm:flex-col',
+      'fixed top-4 right-4 z-100 flex max-h-screen w-full max-w-sm flex-col-reverse gap-2 p-4 sm:flex-col',
       className
     )}
     {...props}
@@ -29,7 +29,7 @@ const Toast = React.forwardRef<
     <ToastPrimitives.Root
       ref={ref}
       className={cn(
-        'group relative flex w-full items-center justify-between space-x-2 overflow-hidden rounded-md border border-slate-200 bg-background p-4 pr-6 shadow-lg transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[swipe=end]:animate-out data-[swipe=end]:fade-out-80 data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform',
+        'group relative flex w-full items-center justify-between space-x-2 overflow-hidden rounded-md border border-slate-200 bg-background p-4 pr-6 shadow-lg transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[swipe=end]:animate-out data-[swipe=end]:fade-out-80 data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x) data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform',
         className
       )}
       {...props}

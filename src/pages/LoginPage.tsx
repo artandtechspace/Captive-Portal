@@ -235,19 +235,19 @@ export const LoginPage = () => {
         <div className="flex min-h-screen flex-col">
             <header className="sticky top-0 z-10 bg-white/80 backdrop-blur">
                 <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-                    <img alt={logos.atsAlt ?? 'ATS'} className="w-24" src="/images/ats-logo.png"/>
+                    <img alt={logos.atsAlt ?? 'ATS'} className="w-24" src="/src/assets/images/ats-logo.png"/>
                     <a
                         aria-label={logos.opnsenseAlt ?? 'OPNsense'}
                         href="https://opnsense.org/"
                         rel="noopener noreferrer"
                         target="_blank"
                     >
-                        <img alt={logos.opnsenseAlt ?? 'OPNsense'} className="w-32" src="/images/opnsense.png"/>
+                        <img alt={logos.opnsenseAlt ?? 'OPNsense'} className="w-32" src="/src/assets/images/opnsense.png"/>
                     </a>
                 </div>
             </header>
 
-            <main className="flex flex-grow items-center justify-center px-4 py-10">
+            <main className="flex grow items-center justify-center px-4 py-10">
                 <Card className="w-full max-w-lg border border-white/40 bg-white/90 backdrop-blur shadow-xl">
                     <CardHeader>
                         <CardTitle>{translateString('headerTitle', 'Welcome to the ATS Network')}</CardTitle>
@@ -359,8 +359,8 @@ export const LoginPage = () => {
                     rel="noopener noreferrer"
                     target="_blank"
                 >
-                    <img alt="Deciso" className="hidden w-32 group-hover:block" src="/images/deciso-brand-hover.svg"/>
-                    <img alt="Deciso" className="block w-32 group-hover:hidden" src="/images/deciso-brand.svg"/>
+                    <img alt="Deciso" className="hidden w-96 group-hover:block" src="/src/assets/images/deciso-brand-hover.svg"/>
+                    <img alt="Deciso" className="block w-96 group-hover:hidden" src="/src/assets/images/deciso-brand.svg"/>
                 </a>
             </footer>
         </div>
