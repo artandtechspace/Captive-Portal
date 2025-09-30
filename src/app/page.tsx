@@ -199,7 +199,7 @@ export default function LoginPage() {
           throw new Error(translateString('errors.serverUnavailable', 'Server unavailable.'));
         }
         if (res.data.clientState === ClientState.AUTHORIZED) {
-          redirect(true);
+          redirect(false);
         } else {
           form.setError('password', {
             type: 'manual',
