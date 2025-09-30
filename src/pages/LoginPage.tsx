@@ -295,7 +295,7 @@ export const LoginPage = () => {
             />
 
             <main className="flex grow items-center justify-center px-4 py-10">
-                <Card className="w-full max-w-lg border border-white/40 bg-white/90 backdrop-blur shadow-xl">
+                <Card className="w-full max-w-lg border border-border bg-card/90 backdrop-blur shadow-xl">
                     <CardHeader>
                         <CardTitle>{translateString('headerTitle', 'Welcome to the ATS Network')}</CardTitle>
                         <CardDescription className="text-justify text-base text-muted-foreground">

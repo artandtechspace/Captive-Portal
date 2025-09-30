@@ -16,7 +16,7 @@ export function BusyOverlay({open, message}: BusyOverlayProps) {
             className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm"
             role="status"
         >
-            <div className="flex items-center gap-3 rounded-lg bg-white/90 px-6 py-4 shadow-xl">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card/90 px-6 py-4 text-foreground shadow-xl">
                 <Loader2 aria-hidden className="h-5 w-5 animate-spin text-primary"/>
                 <span className="text-sm font-medium text-muted-foreground">{message}</span>
             </div>
