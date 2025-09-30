@@ -1,67 +1,69 @@
-import { Label } from '@/components/ui/label';
+"use client";
+
+import { Locale, useTranslation } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import type { LanguageOption } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import {
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
-export type LanguageSwitcherProps = {
-  id?: string;
-  label: string;
-  value: string;
-  options: LanguageOption[];
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  className?: string;
-  labelClassName?: string;
-  triggerClassName?: string;
-};
+type LanguageOption = { value: Locale; label: string; short: string };
 
-export const LanguageSwitcher = ({
-  id = 'language-select',
-  label,
-  value,
-  options,
-  onChange,
-  disabled = false,
-  className,
-  labelClassName,
-  triggerClassName,
-}: LanguageSwitcherProps) => {
-  const hasOptions = options.length > 0;
+function useLanguageOptions(): LanguageOption[] {
+  const { t } = useTranslation();
+  return [
+    { value: "en", label: String(t("lang.english")), short: "EN" },
+    { value: "de", label: String(t("lang.german")), short: "DE" },
+  ];
+}
+
+export function LanguageSwitcher({ className }: { className?: string }) {
+  const { locale, setLocale, t } = useTranslation();
+  const options = useLanguageOptions();
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <Label
-        htmlFor={id}
-        className={cn('text-sm font-medium text-muted-foreground', labelClassName)}
-      >
-        {label}
-      </Label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger
-          id={id}
-          className={cn(
-            'w-[160px] rounded-md border border-input bg-background text-sm',
-            triggerClassName,
-          )}
-        >
-          <SelectValue placeholder={label} />
+    <div className={cn("flex items-center gap-2", className)}>
+      <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+        <SelectTrigger aria-label={String(t("nav.language"))} className="h-8 w-full">
+          <SelectValue placeholder={t("nav.language") as string} />
         </SelectTrigger>
         <SelectContent>
-          {hasOptions
-            ? options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))
-            : null}
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              <span className="flex items-center gap-2">
+                <span className="font-medium">{opt.short}</span>
+                <span className="text-sm">{opt.label}</span>
+              </span>
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>
   );
-};
+}
+
+export function LanguageMenuSection() {
+  const { locale, setLocale, t } = useTranslation();
+  const options = useLanguageOptions();
+
+  return (
+    <>
+      <DropdownMenuLabel inset>{t("nav.language") as string}</DropdownMenuLabel>
+      <DropdownMenuRadioGroup value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+        {options.map((opt) => (
+          <DropdownMenuRadioItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </DropdownMenuRadioItem>
+        ))}
+      </DropdownMenuRadioGroup>
+    </>
+  );
+}

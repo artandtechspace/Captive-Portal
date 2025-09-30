@@ -3,12 +3,12 @@
 import type { ReactNode } from 'react';
 
 import { AppLayout } from '@/components/layout/AppLayout';
-import { TranslationProvider } from '@/lib/i18n';
+import { I18nProvider } from '@/lib/i18n';
 
 export const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <TranslationProvider>
+    <I18nProvider>
       <AppLayout>{children}</AppLayout>
-    </TranslationProvider>
+    </I18nProvider>
   );
 };
