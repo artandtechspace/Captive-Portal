@@ -24,3 +24,4 @@ react-try/dist
 react-try/tsconfig*.tsbuildinfo
 react-try/vite.config.js
 react-try/vite.config.d.ts
+tsconfig.tsbuildinfo

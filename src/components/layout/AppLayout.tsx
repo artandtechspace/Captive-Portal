@@ -3,9 +3,11 @@ import { Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/lib/i18n';
+import { useSystemTheme } from '@/hooks/useSystemTheme';
 
 export const AppLayout = () => {
   const { language, setLanguage, languageOptions, t } = useTranslations();
+  useSystemTheme();
 
   return (
     <div className="relative min-h-screen bg-cover bg-center">
