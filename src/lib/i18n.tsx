@@ -37,6 +37,8 @@ const translations: Translations = {
     },
     usernameLabel: 'Benutzername',
     passwordLabel: 'Passwort',
+    passwordShow: 'Passwort anzeigen',
+    passwordHide: 'Passwort verbergen',
     termsAgreement: {
       prefix: 'Ich stimme den',
       linkText: 'Nutzungsbedingungen',
@@ -44,6 +46,8 @@ const translations: Translations = {
     },
     loginButton: 'Anmelden',
     anonymousButton: 'Anonym anmelden',
+    anonymousDescription:
+      'Die anonyme Anmeldung steht zur Verfügung, wenn kurzfristiger Zugang ohne persönliche Zugangsdaten benötigt wird.',
     logoutButton: 'Abmelden',
     errors: {
       zoneConfigMissing: 'Die Zonenkonfiguration ist nicht verfügbar.',
@@ -155,6 +159,8 @@ const translations: Translations = {
     },
     usernameLabel: 'Username',
     passwordLabel: 'Password',
+    passwordShow: 'Show password',
+    passwordHide: 'Hide password',
     termsAgreement: {
       prefix: 'I agree to the',
       linkText: 'Terms of Use',
@@ -162,6 +168,8 @@ const translations: Translations = {
     },
     loginButton: 'Sign in',
     anonymousButton: 'Sign in anonymously',
+    anonymousDescription:
+      'Anonymous access is available when short-term connectivity is required and no personal credentials are provided.',
     logoutButton: 'Sign out',
     errors: {
       zoneConfigMissing: 'Zone configuration is not available.',

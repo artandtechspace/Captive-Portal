@@ -1,6 +1,6 @@
 import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {Link, useLocation} from 'react-router-dom';
-import {Loader2} from 'lucide-react';
+import {Eye, EyeOff, Loader2} from 'lucide-react';
 import {useTranslations} from "@/lib/i18n";
 import {useToast} from "@/components/ui/use-toast";
 import {CaptivePortalClient, ClientState, LogonRequest} from "@/lib/api";
@@ -37,7 +37,7 @@ type Logos = {
 export const LoginPage = () => {
     const location = useLocation();
     const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
-    const {t} = useTranslations();
+    const {t, language, setLanguage, languageOptions} = useTranslations();
     const {toast} = useToast();
 
     const [username, setUsername] = useState('');
@@ -47,6 +47,7 @@ export const LoginPage = () => {
     const [state, setState] = useState<LoginState>('checking');
     const [busy, setBusy] = useState(false);
     const [errors, setErrors] = useState<FieldErrors>({});
+    const [passwordVisible, setPasswordVisible] = useState(false);
 
     const translateString = useCallback(
         (key: string, fallback: string) => {
@@ -284,15 +285,37 @@ export const LoginPage = () => {
             )}
             <header className="sticky top-0 z-10 bg-white/80 backdrop-blur">
                 <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-                    <img alt={logos.atsAlt ?? 'ATS'} className="w-24" src="/src/assets/images/ats-logo.png"/>
-                    <a
-                        aria-label={logos.opnsenseAlt ?? 'OPNsense'}
-                        href="https://opnsense.org/"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                    >
-                        <img alt={logos.opnsenseAlt ?? 'OPNsense'} className="w-32" src="/src/assets/images/opnsense.png"/>
-                    </a>
+                    <div className="flex items-center gap-6">
+                        <img alt={logos.atsAlt ?? 'ATS'} className="w-24" src="/src/assets/images/ats-logo.png"/>
+                        <a
+                            aria-label={logos.opnsenseAlt ?? 'OPNsense'}
+                            href="https://opnsense.org/"
+                            rel="noopener noreferrer"
+                            target="_blank"
+                        >
+                            <img alt={logos.opnsenseAlt ?? 'OPNsense'} className="w-32" src="/src/assets/images/opnsense.png"/>
+                        </a>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Label className="text-sm font-medium text-muted-foreground" htmlFor="languageSwitcher">
+                            {translateString('languageLabel', 'Language')}
+                        </Label>
+                        <select
+                            id="languageSwitcher"
+                            className="rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            value={language}
+                            onChange={(event) => {
+                                setLanguage(event.target.value);
+                            }}
+                            disabled={busy}
+                        >
+                            {languageOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </header>
 
@@ -352,20 +375,39 @@ export const LoginPage = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="password">{translateString('passwordLabel', 'Password')}</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(event) => {
-                                            setPassword(event.target.value);
-                                            setErrors((prev) => ({...prev, password: undefined, general: undefined}));
-                                        }}
-                                        required
-                                        autoComplete="current-password"
-                                        disabled={busy}
-                                        aria-invalid={Boolean(errors.password)}
-                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={passwordVisible ? 'text' : 'password'}
+                                            value={password}
+                                            onChange={(event) => {
+                                                setPassword(event.target.value);
+                                                setErrors((prev) => ({...prev, password: undefined, general: undefined}));
+                                            }}
+                                            required
+                                            autoComplete="current-password"
+                                            disabled={busy}
+                                            aria-invalid={Boolean(errors.password)}
+                                            className="pr-12 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPasswordVisible((prev) => !prev);
+                                            }}
+                                            className="absolute inset-y-0 right-2 flex items-center rounded-md px-2 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                            aria-label={passwordVisible
+                                                ? translateString('passwordHide', 'Hide password')
+                                                : translateString('passwordShow', 'Show password')}
+                                            aria-pressed={passwordVisible}
+                                        >
+                                            {passwordVisible ? (
+                                                <EyeOff aria-hidden className="h-4 w-4"/>
+                                            ) : (
+                                                <Eye aria-hidden className="h-4 w-4"/>
+                                            )}
+                                        </button>
+                                    </div>
                                     {errors.password && (
                                         <p className="text-sm text-destructive" role="alert">
                                             {errors.password}
@@ -423,14 +465,22 @@ export const LoginPage = () => {
                         )}
 
                         {showAnonymous && (
-                            <Button
-                                className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                onClick={loginAnonymous}
-                                disabled={busy}
-                            >
-                                {busy ? <Loader2 className="h-4 w-4 animate-spin"
-                                                 aria-hidden/> : translateString('anonymousButton', 'Sign in anonymously')}
-                            </Button>
+                            <div className="space-y-4">
+                                <p className="text-sm text-muted-foreground">
+                                    {translateString(
+                                        'anonymousDescription',
+                                        'Anonymous access is available for short-term guests when no personal credentials are provided.'
+                                    )}
+                                </p>
+                                <Button
+                                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    onClick={loginAnonymous}
+                                    disabled={busy}
+                                >
+                                    {busy ? <Loader2 className="h-4 w-4 animate-spin"
+                                                     aria-hidden/> : translateString('anonymousButton', 'Sign in anonymously')}
+                                </Button>
+                            </div>
                         )}
 
                         {showLogout && (
