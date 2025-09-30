@@ -19,3 +19,8 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+react-try/node_modules
+react-try/dist
+react-try/tsconfig*.tsbuildinfo
+react-try/vite.config.js
+react-try/vite.config.d.ts
