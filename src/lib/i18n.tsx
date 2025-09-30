@@ -35,7 +35,7 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-const DEFAULT_LOCALE: Locale = "en";
+const DEFAULT_LOCALE: Locale = "de";
 const SUPPORTED_LOCALES = Object.keys(messages) as Locale[];
 
 function getInitialLocale(): Locale {
