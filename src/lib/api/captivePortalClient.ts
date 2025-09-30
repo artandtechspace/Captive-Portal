@@ -15,11 +15,9 @@ type ApiResponse<T> = {
 export class CaptivePortalClient {
   private readonly baseUrl: string;
 
-  private readonly fetchImpl: typeof fetch;
 
-  constructor(baseUrl: string = '', fetchImpl: typeof fetch = fetch) {
+  constructor(baseUrl: string = '') {
     this.baseUrl = baseUrl.replace(/\/$/, '');
-    this.fetchImpl = fetchImpl;
   }
 
   async getClientStatus(
@@ -73,7 +71,7 @@ export class CaptivePortalClient {
   }
 
   async request<T>(path: string, init: RequestInit): Promise<ApiResponse<T>> {
-    const response = await this.fetchImpl(`${this.baseUrl}${path}`, init);
+    const response = await fetch(`${this.baseUrl}${path}`, init);
     const data = await this.parseJson<T>(response);
     return {
       ok: response.ok,
