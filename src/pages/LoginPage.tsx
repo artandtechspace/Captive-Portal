@@ -1,33 +1,26 @@
-import {FormEvent, useCallback, useEffect, useMemo, useState} from 'react';
-import {Link, useLocation} from 'react-router-dom';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useLocation} from 'react-router-dom';
 import {Loader2} from 'lucide-react';
 import {useTranslations} from "@/lib/i18n";
 import {useToast} from "@/components/ui/use-toast";
 import {CaptivePortalClient, ClientState, LogonRequest} from "@/lib/api";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
-import {Checkbox} from "@/components/ui/checkbox";
 import {Button} from "@/components/ui/button";
+import {useForm} from "react-hook-form";
+import {
+    LoginFormValues,
+    PasswordLoginForm,
+    TermsAgreement
+} from "@/components/login/password-login-form";
+import {LoginBusyOverlay} from "@/components/login/login-busy-overlay";
+import {LoginBrandingHeader} from "@/components/login/login-branding-header";
+import {ConfirmDialog} from "@/components/ui/confirm-dialog";
 
 const client = new CaptivePortalClient();
 
 type LoginState = 'checking' | 'password' | 'anonymous' | 'authorized';
 
 type ApiResponse<T> = { status: number; ok: boolean; data: T | null };
-
-type FieldErrors = {
-    username?: string;
-    password?: string;
-    terms?: string;
-    general?: string;
-};
-
-type TermsAgreement = {
-    prefix?: string;
-    linkText?: string;
-    suffix?: string;
-};
 
 type Logos = {
     atsAlt?: string;
@@ -40,13 +33,17 @@ export const LoginPage = () => {
     const {t} = useTranslations();
     const {toast} = useToast();
 
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [termsAccepted, setTermsAccepted] = useState(false);
+    const form = useForm<LoginFormValues>({
+        defaultValues: {
+            username: '',
+            password: '',
+            terms: false
+        }
+    });
     const [zoneId, setZoneId] = useState('');
     const [state, setState] = useState<LoginState>('checking');
     const [busy, setBusy] = useState(false);
-    const [errors, setErrors] = useState<FieldErrors>({});
+    const [generalError, setGeneralError] = useState<string | undefined>();
 
     const translateString = useCallback(
         (key: string, fallback: string) => {
@@ -143,36 +140,49 @@ export const LoginPage = () => {
     }, [toastError, translateString, withZone]);
 
     const login = useCallback(
-        async (event: FormEvent<HTMLFormElement>) => {
-            event.preventDefault();
+        async ({username, password, terms}: LoginFormValues) => {
             if (busy) return;
 
             const trimmedUsername = username.trim();
             const trimmedPassword = password.trim();
-            const validationErrors: FieldErrors = {};
+
+            form.clearErrors();
+            setGeneralError(undefined);
+
+            let hasError = false;
 
             if (!trimmedUsername) {
-                validationErrors.username = translateString('errors.usernameRequired', 'Username is required.');
+                form.setError('username', {
+                    type: 'manual',
+                    message: translateString('errors.usernameRequired', 'Username is required.')
+                });
+                hasError = true;
             }
 
             if (!trimmedPassword) {
-                validationErrors.password = translateString('errors.passwordRequired', 'Password is required.');
+                form.setError('password', {
+                    type: 'manual',
+                    message: translateString('errors.passwordRequired', 'Password is required.')
+                });
+                hasError = true;
             }
 
-            if (!termsAccepted) {
-                validationErrors.terms = translateString(
-                    'errors.termsAcceptanceRequired',
-                    'You must accept the terms of use before continuing.'
-                );
+            if (!terms) {
+                form.setError('terms', {
+                    type: 'manual',
+                    message: translateString(
+                        'errors.termsAcceptanceRequired',
+                        'You must accept the terms of use before continuing.'
+                    )
+                });
+                hasError = true;
             }
 
-            if (Object.keys(validationErrors).length > 0) {
-                setErrors(validationErrors);
+            if (hasError) {
                 return;
             }
 
             setBusy(true);
-            setErrors({});
             try {
                 const credentials: LogonRequest = {
                     user: trimmedUsername,
@@ -185,13 +195,16 @@ export const LoginPage = () => {
                 if (res.data.clientState === ClientState.AUTHORIZED) {
                     redirect(true);
                 } else {
-                    setErrors({
-                        password: translateString('errors.authenticationFailed', 'Authentication failed.'),
-                        general: translateString(
+                    form.setError('password', {
+                        type: 'manual',
+                        message: translateString('errors.authenticationFailed', 'Authentication failed.')
+                    });
+                    setGeneralError(
+                        translateString(
                             'errors.authenticationInline',
                             'Please check your credentials and try again.'
                         )
-                    });
+                    );
                 }
             } catch (error) {
                 toastError(error, 'errors.serverUnavailable', 'Server unavailable.');
@@ -199,7 +212,7 @@ export const LoginPage = () => {
                 setBusy(false);
             }
         },
-        [busy, password, redirect, toast, toastError, translateString, username, withZone]
+        [busy, form, redirect, toastError, translateString, withZone]
     );
 
     const loginAnonymous = useCallback(async () => {
@@ -259,42 +272,24 @@ export const LoginPage = () => {
         }
     }, [translateString]);
 
+    const handleFormInteraction = useCallback(() => {
+        form.clearErrors();
+        setGeneralError(undefined);
+    }, [form, setGeneralError]);
+
     const termsAgreement = (t('termsAgreement') as TermsAgreement) ?? {};
     const logos = (t('logos') as Logos) ?? {};
-    const canSubmit = Boolean(termsAccepted && username.trim() && password.trim());
     const showPassword = state === 'password';
     const showAnonymous = state === 'anonymous';
     const showLogout = state === 'authorized';
 
     return (
         <div className="relative flex min-h-screen flex-col" aria-busy={busy}>
-            {busy && (
-                <div
-                    aria-live="polite"
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm"
-                    role="status"
-                >
-                    <div className="flex items-center gap-3 rounded-lg bg-white/90 px-6 py-4 shadow-xl">
-                        <Loader2 aria-hidden className="h-5 w-5 animate-spin text-primary"/>
-                        <span className="text-sm font-medium text-muted-foreground">
-                            {translateString('loadingMessage', 'Processing your request...')}
-                        </span>
-                    </div>
-                </div>
-            )}
-            <header className="sticky top-0 z-10 bg-white/80 backdrop-blur">
-                <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-                    <img alt={logos.atsAlt ?? 'ATS'} className="w-24" src="/src/assets/images/ats-logo.png"/>
-                    <a
-                        aria-label={logos.opnsenseAlt ?? 'OPNsense'}
-                        href="https://opnsense.org/"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                    >
-                        <img alt={logos.opnsenseAlt ?? 'OPNsense'} className="w-32" src="/src/assets/images/opnsense.png"/>
-                    </a>
-                </div>
-            </header>
+            <LoginBusyOverlay
+                busy={busy}
+                message={translateString('loadingMessage', 'Processing your request...')}
+            />
+            <LoginBrandingHeader atsAlt={logos.atsAlt} opnsenseAlt={logos.opnsenseAlt}/>
 
             <main className="flex grow items-center justify-center px-4 py-10">
                 <Card className="w-full max-w-lg border border-white/40 bg-white/90 backdrop-blur shadow-xl">
@@ -315,133 +310,61 @@ export const LoginPage = () => {
                         )}
 
                         {showPassword && (
-                            <form className="space-y-5" onSubmit={login} autoComplete="off" noValidate>
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold">
-                                        {translateString('loginFormTitle', 'Sign in to the ATS Network')}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        {translateString('loginFormDescription', 'Enter your username and password to sign in:')}
-                                    </p>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="username">{translateString('usernameLabel', 'Username')}</Label>
-                                    <Input
-                                        id="username"
-                                        type="text"
-                                        value={username}
-                                        onChange={(event) => {
-                                            setUsername(event.target.value);
-                                            setErrors((prev) => ({...prev, username: undefined, general: undefined}));
-                                        }}
-                                        required
-                                        autoCapitalize="none"
-                                        autoCorrect="off"
-                                        inputMode="email"
-                                        disabled={busy}
-                                        aria-invalid={Boolean(errors.username)}
-                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                    />
-                                    {errors.username && (
-                                        <p className="text-sm text-destructive" role="alert">
-                                            {errors.username}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="password">{translateString('passwordLabel', 'Password')}</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(event) => {
-                                            setPassword(event.target.value);
-                                            setErrors((prev) => ({...prev, password: undefined, general: undefined}));
-                                        }}
-                                        required
-                                        autoComplete="current-password"
-                                        disabled={busy}
-                                        aria-invalid={Boolean(errors.password)}
-                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                    />
-                                    {errors.password && (
-                                        <p className="text-sm text-destructive" role="alert">
-                                            {errors.password}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="flex items-start gap-3 rounded-lg bg-muted/40 p-3">
-                                    <Checkbox
-                                        id="termsCheckbox"
-                                        checked={termsAccepted}
-                                        onCheckedChange={(checked) => {
-                                            setTermsAccepted(Boolean(checked));
-                                            setErrors((prev) => ({...prev, terms: undefined, general: undefined}));
-                                        }}
-                                        disabled={busy}
-                                        required
-                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                    />
-                                    <Label htmlFor="termsCheckbox"
-                                           className="text-sm font-normal leading-6 text-muted-foreground">
-                                        {termsAgreement.prefix ?? ''}{' '}
-                                        <Link
-                                            className="font-medium text-primary underline"
-                                            to="/terms"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {termsAgreement.linkText ?? translateString('termsLinkLabel', 'Terms of Use')}
-                                        </Link>{' '}
-                                        {termsAgreement.suffix ?? ''}
-                                    </Label>
-                                </div>
-                                {errors.terms && (
-                                    <p className="text-sm text-destructive" role="alert">
-                                        {errors.terms}
-                                    </p>
-                                )}
-
-                                {errors.general && (
-                                    <p className="text-sm font-medium text-destructive" role="alert">
-                                        {errors.general}
-                                    </p>
-                                )}
-
-                                <Button
-                                    type="submit"
-                                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                    disabled={!canSubmit || busy}
-                                >
-                                    {busy ? <Loader2 className="h-4 w-4 animate-spin"
-                                                     aria-hidden/> : translateString('loginButton', 'Sign in')}
-                                </Button>
-                            </form>
+                            <PasswordLoginForm
+                                form={form}
+                                onSubmit={login}
+                                isBusy={busy}
+                                translateString={translateString}
+                                termsAgreement={termsAgreement}
+                                onFieldInteraction={handleFormInteraction}
+                                generalError={generalError}
+                            />
                         )}
 
                         {showAnonymous && (
                             <Button
                                 className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                onClick={loginAnonymous}
+                                onClick={() => {
+                                    handleFormInteraction();
+                                    void loginAnonymous();
+                                }}
                                 disabled={busy}
                             >
-                                {busy ? <Loader2 className="h-4 w-4 animate-spin"
-                                                 aria-hidden/> : translateString('anonymousButton', 'Sign in anonymously')}
+                                {busy ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden/>
+                                ) : (
+                                    translateString('anonymousButton', 'Sign in anonymously')
+                                )}
                             </Button>
                         )}
 
                         {showLogout && (
-                            <Button
-                                className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                onClick={logout}
-                                disabled={busy}
+                            <ConfirmDialog
+                                danger
+                                title={translateString('logoutConfirmTitle', 'Sign out from the ATS Network?')}
+                                description={translateString(
+                                    'logoutConfirmDescription',
+                                    'You will need to sign in again to regain access.'
+                                )}
+                                confirmText={translateString('logoutButton', 'Sign out')}
+                                cancelText={translateString('logoutCancelButton', 'Stay signed in')}
+                                onConfirmAction={() => {
+                                    handleFormInteraction();
+                                    void logout();
+                                }}
                             >
-                                {busy ? <Loader2 className="h-4 w-4 animate-spin"
-                                                 aria-hidden/> : translateString('logoutButton', 'Sign out')}
-                            </Button>
+                                <Button
+                                    type="button"
+                                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    disabled={busy}
+                                >
+                                    {busy ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden/>
+                                    ) : (
+                                        translateString('logoutButton', 'Sign out')
+                                    )}
+                                </Button>
+                            </ConfirmDialog>
                         )}
                     </CardContent>
                 </Card>
