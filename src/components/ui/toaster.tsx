@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from 'src/components/ui/toast';
-import { useToast } from 'src/components/ui/use-toast';
+import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from '@/components/ui/toast';
+import { useToast } from '@/components/ui/use-toast';
 
 export const Toaster = () => {
   const { toasts, dismiss } = useToast();

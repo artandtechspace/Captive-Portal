@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 
-import { Card, CardContent, CardHeader, CardTitle } from 'src/components/ui/card';
-import { useTranslations } from 'src/lib/i18n';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from '@/lib/i18n';
 
 type TermsSection = {
   title?: string;

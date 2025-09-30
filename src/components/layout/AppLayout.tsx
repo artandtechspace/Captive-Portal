@@ -1,8 +1,8 @@
 import { Outlet } from 'react-router-dom';
 
-import { Toaster } from 'src/components/ui/toaster';
-import { Label } from 'src/components/ui/label';
-import { useTranslations } from 'src/lib/i18n';
+import { Toaster } from '@/components/ui/toaster';
+import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/lib/i18n';
 
 export const AppLayout = () => {
   const { language, setLanguage, languageOptions, t } = useTranslations();
