@@ -33,7 +33,7 @@ type Logos = {
 export const LoginPage = () => {
     const location = useLocation();
     const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
-    const {t, language, setLanguage, languageOptions} = useTranslations();
+    const {t} = useTranslations();
     const {toast} = useToast();
 
     const [zoneId, setZoneId] = useState('');
@@ -285,14 +285,7 @@ export const LoginPage = () => {
                 open={busy}
                 message={translateString('loadingMessage', 'Processing your request...')}
             />
-            <LoginHeader
-                logos={logos}
-                language={language}
-                languageLabel={translateString('languageLabel', 'Language')}
-                options={languageOptions}
-                onLanguageChange={setLanguage}
-                disabled={busy}
-            />
+            <LoginHeader logos={logos}/>
 
             <main className="flex grow items-center justify-center px-4 py-10">
                 <Card className="w-full max-w-lg border border-border bg-card/90 backdrop-blur shadow-xl">
