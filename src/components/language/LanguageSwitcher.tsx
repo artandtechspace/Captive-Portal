@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useMemo, useRef } from "react";
+
 import { Locale, useTranslation } from "@/lib/i18n";
 import {
   Select,
@@ -17,21 +19,39 @@ import { cn } from "@/lib/utils";
 
 type LanguageOption = { value: Locale; label: string; short: string };
 
-function useLanguageOptions(): LanguageOption[] {
-  const { t } = useTranslation();
-  return [
-    { value: "en", label: String(t("lang.english")), short: "EN" },
-    { value: "de", label: String(t("lang.german")), short: "DE" },
-  ];
+function useLanguageSelection() {
+  const { locale, setLocale, t } = useTranslation();
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
+
+  const options = useMemo<LanguageOption[]>(
+    () => [
+      { value: "en", label: String(t("lang.english")), short: "EN" },
+      { value: "de", label: String(t("lang.german")), short: "DE" },
+    ],
+    [t],
+  );
+
+  const handleLocaleChange = useCallback(
+    (value: string) => {
+      const nextLocale = value as Locale;
+      if (nextLocale === localeRef.current) {
+        return;
+      }
+      setLocale(nextLocale);
+    },
+    [setLocale],
+  );
+
+  return { locale, t, options, handleLocaleChange };
 }
 
 export function LanguageSwitcher({ className }: { className?: string }) {
-  const { locale, setLocale, t } = useTranslation();
-  const options = useLanguageOptions();
+  const { locale, t, options, handleLocaleChange } = useLanguageSelection();
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+      <Select value={locale} onValueChange={handleLocaleChange}>
         <SelectTrigger aria-label={String(t("nav.language"))} className="h-8 w-full">
           <SelectValue placeholder={t("nav.language") as string} />
         </SelectTrigger>
@@ -51,13 +71,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 }
 
 export function LanguageMenuSection() {
-  const { locale, setLocale, t } = useTranslation();
-  const options = useLanguageOptions();
+  const { locale, t, options, handleLocaleChange } = useLanguageSelection();
 
   return (
     <>
       <DropdownMenuLabel inset>{t("nav.language") as string}</DropdownMenuLabel>
-      <DropdownMenuRadioGroup value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+      <DropdownMenuRadioGroup value={locale} onValueChange={handleLocaleChange}>
         {options.map((opt) => (
           <DropdownMenuRadioItem key={opt.value} value={opt.value}>
             {opt.label}

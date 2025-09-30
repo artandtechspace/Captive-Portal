@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -67,6 +68,7 @@ function formatMessage(value: MessageValue | undefined, params?: Record<string, 
 
 export function I18nProvider({ children, initialLocale }: { children: ReactNode; initialLocale?: Locale }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale ?? getInitialLocale());
+  const localeRef = useRef(locale);
 
   useEffect(() => {
     try {
@@ -88,12 +90,17 @@ export function I18nProvider({ children, initialLocale }: { children: ReactNode;
     } catch {
       // ignore persistence errors
     }
+
+    localeRef.current = locale;
   }, [locale]);
 
   const setLocale = useCallback((nextLocale: Locale) => {
-    if (SUPPORTED_LOCALES.includes(nextLocale)) {
-      setLocaleState(nextLocale);
+    if (!SUPPORTED_LOCALES.includes(nextLocale) || localeRef.current === nextLocale) {
+      return;
     }
+
+    localeRef.current = nextLocale;
+    setLocaleState(nextLocale);
   }, []);
 
   const t = useCallback(
