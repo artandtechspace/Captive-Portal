@@ -1,4 +1,4 @@
-import {Link} from "react-router-dom";
+import Link from "next/link";
 import {Loader2} from "lucide-react";
 import {UseFormReturn} from "react-hook-form";
 import {Button} from "@/components/ui/button";
@@ -123,7 +123,7 @@ export function PasswordLoginForm({form, busy, translateString, termsAgreement, 
                         {termsAgreement.prefix ?? ''}{' '}
                         <Link
                             className="font-medium text-primary underline"
-                            to="/terms"
+                            href="/terms"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
