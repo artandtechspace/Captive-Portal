@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +19,7 @@ type TermsContent = {
 
 const emptyTerms: TermsContent = { pageTitle: '', heading: '', sections: [] };
 
-export const TermsPage = () => {
+export default function TermsPage() {
   const { t } = useTranslations();
   const terms = useMemo(() => (t('terms') as TermsContent | undefined) ?? emptyTerms, [t]);
   const sections = terms.sections ?? [];
@@ -33,13 +35,11 @@ export const TermsPage = () => {
       <div className="container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
         <Card className="w-full max-w-3xl border border-border bg-card/90 backdrop-blur shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between">
-            <img alt={String((t('logos.atsAlt') as string) ?? 'ATS')} className="w-24" src="/src/assets/images/ats-logo.png" />
-            <img alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')} className="w-32" src="/src/assets/images/opnsense.png" />
+            <img alt={String((t('logos.atsAlt') as string) ?? 'ATS')} className="w-24" src="/images/ats-logo.png" />
+            <img alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')} className="w-32" src="/images/opnsense.png" />
           </CardHeader>
           <CardContent className="space-y-6">
-            <CardTitle className="text-2xl font-medium text-foreground">
-              {terms.heading}
-            </CardTitle>
+            <CardTitle className="text-2xl font-medium text-foreground">{terms.heading}</CardTitle>
             <div className="space-y-6 text-sm leading-6 text-muted-foreground">
               {sections.map((section, index) => (
                 <section key={section.title ?? `section-${index}`} className="space-y-3">
@@ -62,4 +62,4 @@ export const TermsPage = () => {
       </div>
     </div>
   );
-};
+}

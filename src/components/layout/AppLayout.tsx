@@ -1,11 +1,17 @@
-import { Outlet } from 'react-router-dom';
+"use client";
+
+import type { ReactNode } from 'react';
 
 import { LanguageSwitcher } from '@/components/language/LanguageSwitcher';
 import { Toaster } from '@/components/ui/toaster';
-import { useTranslations } from '@/lib/i18n';
 import { useSystemTheme } from '@/hooks/useSystemTheme';
+import { useTranslations } from '@/lib/i18n';
 
-export const AppLayout = () => {
+type AppLayoutProps = {
+  children: ReactNode;
+};
+
+export const AppLayout = ({ children }: AppLayoutProps) => {
   const { language, setLanguage, languageOptions, t } = useTranslations();
   useSystemTheme();
 
@@ -22,7 +28,7 @@ export const AppLayout = () => {
         />
       </div>
 
-      <Outlet />
+      {children}
       <Toaster />
     </div>
   );

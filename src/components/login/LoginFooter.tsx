@@ -8,8 +8,8 @@ export function LoginFooter() {
                 rel="noopener noreferrer"
                 target="_blank"
             >
-                <img alt="Deciso" className="hidden w-96 group-hover:block" src="/src/assets/images/deciso-brand-hover.svg"/>
-                <img alt="Deciso" className="block w-96 group-hover:hidden" src="/src/assets/images/deciso-brand.svg"/>
+                <img alt="Deciso" className="hidden w-96 group-hover:block" src="/images/deciso-brand-hover.svg"/>
+                <img alt="Deciso" className="block w-96 group-hover:hidden" src="/images/deciso-brand.svg"/>
             </a>
         </footer>
     );
