@@ -16,6 +16,13 @@ type LoginState = 'checking' | 'password' | 'anonymous' | 'authorized';
 
 type ApiResponse<T> = { status: number; ok: boolean; data: T | null };
 
+type FieldErrors = {
+    username?: string;
+    password?: string;
+    terms?: string;
+    general?: string;
+};
+
 type TermsAgreement = {
     prefix?: string;
     linkText?: string;
@@ -39,6 +46,7 @@ export const LoginPage = () => {
     const [zoneId, setZoneId] = useState('');
     const [state, setState] = useState<LoginState>('checking');
     const [busy, setBusy] = useState(false);
+    const [errors, setErrors] = useState<FieldErrors>({});
 
     const translateString = useCallback(
         (key: string, fallback: string) => {
@@ -138,11 +146,37 @@ export const LoginPage = () => {
         async (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
             if (busy) return;
+
+            const trimmedUsername = username.trim();
+            const trimmedPassword = password.trim();
+            const validationErrors: FieldErrors = {};
+
+            if (!trimmedUsername) {
+                validationErrors.username = translateString('errors.usernameRequired', 'Username is required.');
+            }
+
+            if (!trimmedPassword) {
+                validationErrors.password = translateString('errors.passwordRequired', 'Password is required.');
+            }
+
+            if (!termsAccepted) {
+                validationErrors.terms = translateString(
+                    'errors.termsAcceptanceRequired',
+                    'You must accept the terms of use before continuing.'
+                );
+            }
+
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
+                return;
+            }
+
             setBusy(true);
+            setErrors({});
             try {
                 const credentials: LogonRequest = {
-                    user: username.trim(),
-                    password
+                    user: trimmedUsername,
+                    password: trimmedPassword
                 };
                 const res = await withZone((z) => client.logon(z, credentials));
                 if (!res.ok || !res.data) {
@@ -151,11 +185,12 @@ export const LoginPage = () => {
                 if (res.data.clientState === ClientState.AUTHORIZED) {
                     redirect(true);
                 } else {
-                    setUsername('');
-                    setPassword('');
-                    toast({
-                        title: translateString('errors.authenticationFailed', 'Authentication failed.'),
-                        className: 'border-destructive bg-destructive text-destructive-foreground'
+                    setErrors({
+                        password: translateString('errors.authenticationFailed', 'Authentication failed.'),
+                        general: translateString(
+                            'errors.authenticationInline',
+                            'Please check your credentials and try again.'
+                        )
                     });
                 }
             } catch (error) {
@@ -232,7 +267,21 @@ export const LoginPage = () => {
     const showLogout = state === 'authorized';
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="relative flex min-h-screen flex-col" aria-busy={busy}>
+            {busy && (
+                <div
+                    aria-live="polite"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm"
+                    role="status"
+                >
+                    <div className="flex items-center gap-3 rounded-lg bg-white/90 px-6 py-4 shadow-xl">
+                        <Loader2 aria-hidden className="h-5 w-5 animate-spin text-primary"/>
+                        <span className="text-sm font-medium text-muted-foreground">
+                            {translateString('loadingMessage', 'Processing your request...')}
+                        </span>
+                    </div>
+                </div>
+            )}
             <header className="sticky top-0 z-10 bg-white/80 backdrop-blur">
                 <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
                     <img alt={logos.atsAlt ?? 'ATS'} className="w-24" src="/src/assets/images/ats-logo.png"/>
@@ -266,7 +315,7 @@ export const LoginPage = () => {
                         )}
 
                         {showPassword && (
-                            <form className="space-y-5" onSubmit={login} autoComplete="off">
+                            <form className="space-y-5" onSubmit={login} autoComplete="off" noValidate>
                                 <div className="space-y-2">
                                     <h3 className="text-lg font-semibold">
                                         {translateString('loginFormTitle', 'Sign in to the ATS Network')}
@@ -282,13 +331,23 @@ export const LoginPage = () => {
                                         id="username"
                                         type="text"
                                         value={username}
-                                        onChange={(event) => setUsername(event.target.value)}
+                                        onChange={(event) => {
+                                            setUsername(event.target.value);
+                                            setErrors((prev) => ({...prev, username: undefined, general: undefined}));
+                                        }}
                                         required
                                         autoCapitalize="none"
                                         autoCorrect="off"
                                         inputMode="email"
                                         disabled={busy}
+                                        aria-invalid={Boolean(errors.username)}
+                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                     />
+                                    {errors.username && (
+                                        <p className="text-sm text-destructive" role="alert">
+                                            {errors.username}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
@@ -297,20 +356,34 @@ export const LoginPage = () => {
                                         id="password"
                                         type="password"
                                         value={password}
-                                        onChange={(event) => setPassword(event.target.value)}
+                                        onChange={(event) => {
+                                            setPassword(event.target.value);
+                                            setErrors((prev) => ({...prev, password: undefined, general: undefined}));
+                                        }}
                                         required
                                         autoComplete="current-password"
                                         disabled={busy}
+                                        aria-invalid={Boolean(errors.password)}
+                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                     />
+                                    {errors.password && (
+                                        <p className="text-sm text-destructive" role="alert">
+                                            {errors.password}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="flex items-start gap-3 rounded-lg bg-muted/40 p-3">
                                     <Checkbox
                                         id="termsCheckbox"
                                         checked={termsAccepted}
-                                        onCheckedChange={(checked) => setTermsAccepted(Boolean(checked))}
+                                        onCheckedChange={(checked) => {
+                                            setTermsAccepted(Boolean(checked));
+                                            setErrors((prev) => ({...prev, terms: undefined, general: undefined}));
+                                        }}
                                         disabled={busy}
                                         required
+                                        className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                     />
                                     <Label htmlFor="termsCheckbox"
                                            className="text-sm font-normal leading-6 text-muted-foreground">
@@ -326,8 +399,23 @@ export const LoginPage = () => {
                                         {termsAgreement.suffix ?? ''}
                                     </Label>
                                 </div>
+                                {errors.terms && (
+                                    <p className="text-sm text-destructive" role="alert">
+                                        {errors.terms}
+                                    </p>
+                                )}
 
-                                <Button type="submit" className="w-full" disabled={!canSubmit || busy}>
+                                {errors.general && (
+                                    <p className="text-sm font-medium text-destructive" role="alert">
+                                        {errors.general}
+                                    </p>
+                                )}
+
+                                <Button
+                                    type="submit"
+                                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    disabled={!canSubmit || busy}
+                                >
                                     {busy ? <Loader2 className="h-4 w-4 animate-spin"
                                                      aria-hidden/> : translateString('loginButton', 'Sign in')}
                                 </Button>
@@ -335,14 +423,22 @@ export const LoginPage = () => {
                         )}
 
                         {showAnonymous && (
-                            <Button className="w-full" onClick={loginAnonymous} disabled={busy}>
+                            <Button
+                                className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                onClick={loginAnonymous}
+                                disabled={busy}
+                            >
                                 {busy ? <Loader2 className="h-4 w-4 animate-spin"
                                                  aria-hidden/> : translateString('anonymousButton', 'Sign in anonymously')}
                             </Button>
                         )}
 
                         {showLogout && (
-                            <Button className="w-full" onClick={logout} disabled={busy}>
+                            <Button
+                                className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                onClick={logout}
+                                disabled={busy}
+                            >
                                 {busy ? <Loader2 className="h-4 w-4 animate-spin"
                                                  aria-hidden/> : translateString('logoutButton', 'Sign out')}
                             </Button>
