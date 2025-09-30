@@ -287,6 +287,42 @@ export default function LoginPage() {
 
   const termsAgreement = useMemo(() => (t('termsAgreement') as TermsAgreement | undefined) ?? {}, [t]);
   const logos = useMemo(() => (t('logos') as Logos | undefined) ?? {}, [t]);
+  const headerContent = useMemo(() => {
+    switch (state) {
+      case 'checking':
+        return {
+          title: translateString('headerTitleChecking', 'Checking your connection...'),
+          description: translateString(
+            'headerDescriptionChecking',
+            'Please wait while we verify the current network status of this device.',
+          ),
+        };
+      case 'anonymous':
+        return {
+          title: translateString('headerTitleAnonymous', 'Guest access available'),
+          description: translateString(
+            'headerDescriptionAnonymous',
+            'You can continue with temporary access or sign in with your personal credentials below.',
+          ),
+        };
+      case 'authorized':
+        return {
+          title: translateString('headerTitleAuthorized', 'You are connected to the ATS Network'),
+          description: translateString(
+            'headerDescriptionAuthorized',
+            'This device already has internet access. You can close this window or sign out below if you are finished.',
+          ),
+        };
+      default:
+        return {
+          title: translateString('headerTitle', 'Welcome to the ATS Network'),
+          description: translateString(
+            'headerDescription',
+            'By using this network you agree to comply with the following terms of use. If you do not agree, you may not use the network.',
+          ),
+        };
+    }
+  }, [state, translateString]);
   const showPassword = state === 'password';
   const showAnonymous = state === 'anonymous';
   const showLogout = state === 'authorized';
@@ -299,12 +335,9 @@ export default function LoginPage() {
       <main className="flex grow items-center justify-center px-4 py-10">
         <Card className="w-full max-w-lg border border-border bg-card/90 backdrop-blur shadow-xl">
           <CardHeader>
-            <CardTitle>{translateString('headerTitle', 'Welcome to the ATS Network')}</CardTitle>
+            <CardTitle>{headerContent.title}</CardTitle>
             <CardDescription className="text-justify text-base text-muted-foreground">
-              {translateString(
-                'headerDescription',
-                'By using this network you agree to comply with the following terms of use. If you do not agree, you may not use the network.',
-              )}
+              {headerContent.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
