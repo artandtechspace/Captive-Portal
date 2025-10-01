@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import {useEffect, useMemo} from 'react';
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -35,10 +36,22 @@ export default function TermsPage() {
             <div className="container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
                 <Card className="w-full max-w-3xl border border-border bg-card/90 backdrop-blur shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <img alt={String((t('logos.atsAlt') as string) ?? 'ATS')} className="w-24"
-                             src="/images/ats-logo-light.svg"/>
-                        <img alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')} className="w-32"
-                             src="/images/opnsense.png"/>
+                        <Image
+                            alt={String((t('logos.atsAlt') as string) ?? 'ATS')}
+                            className="h-auto w-24"
+                            height={96}
+                            priority
+                            src="/images/ats-logo-light.svg"
+                            width={96}
+                        />
+                        <Image
+                            alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')}
+                            className="h-auto w-32"
+                            height={96}
+                            priority
+                            src="/images/opnsense.png"
+                            width={192}
+                        />
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <CardTitle className="text-2xl font-medium text-foreground">{terms.heading}</CardTitle>
