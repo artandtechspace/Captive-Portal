@@ -13,14 +13,14 @@ type LogoutSectionProps = {
 };
 
 export function LogoutSection({
-                                   busy,
-                                   triggerLabel,
-                                   confirmTitle,
-                                   confirmDescription,
-                                   confirmText,
-                                   cancelText,
-                                   onConfirm
-                               }: LogoutSectionProps) {
+                                  busy,
+                                  triggerLabel,
+                                  confirmTitle,
+                                  confirmDescription,
+                                  confirmText,
+                                  cancelText,
+                                  onConfirm
+                              }: LogoutSectionProps) {
     return (
         <ConfirmDialog
             title={confirmTitle}

@@ -28,15 +28,15 @@ type ConfirmDialogProps = {
 };
 
 export function ConfirmDialog({
-                                   children,
-                                   title,
-                                   description,
-                                   onConfirmAction,
-                                   danger = false,
-                                   confirmText,
-                                   cancelText,
-                                   confirmDisabled = false
-                               }: ConfirmDialogProps) {
+                                  children,
+                                  title,
+                                  description,
+                                  onConfirmAction,
+                                  danger = false,
+                                  confirmText,
+                                  cancelText,
+                                  confirmDisabled = false
+                              }: ConfirmDialogProps) {
     const computedTitle = title ?? "Bist du dir sicher?";
     const computedDescription = description ?? "Diese Aktion kann nicht rückgängig gemacht werden.";
     const computedConfirmText = confirmText ?? "Löschen";

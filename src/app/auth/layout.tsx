@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type {ReactNode} from "react";
 
-import { LanguageSwitcher } from "@/components/language/LanguageSwitcher";
-import { useTranslation } from "@/lib/i18n";
+import {LanguageSwitcher} from "@/components/language/LanguageSwitcher";
+import {useTranslation} from "@/lib/i18n";
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
-    const { t } = useTranslation();
+export default function AuthLayout({children}: { children: ReactNode }) {
+    const {t} = useTranslation();
     const rawLogos = t("logos");
     const logos = (rawLogos && typeof rawLogos === "object" ? rawLogos : {}) as {
         atsAlt?: string;
@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="relative flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-            <LanguageSwitcher className="absolute right-4 top-4" />
+            <LanguageSwitcher className="absolute right-4 top-4"/>
             <div className="flex w-full max-w-sm flex-col gap-6">
                 <Link href="/" className="flex items-center justify-center gap-4">
                     <img

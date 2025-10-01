@@ -1,14 +1,7 @@
 import React from "react";
 import {Control, FieldValues, Path} from "react-hook-form";
 import {Checkbox} from "@/components/ui/checkbox";
-import {
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from "@/components/ui/form";
+import {FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {cn} from "@/lib/utils";
 
 interface FormCheckboxFieldProps<TFieldValues extends FieldValues> {
@@ -21,13 +14,13 @@ interface FormCheckboxFieldProps<TFieldValues extends FieldValues> {
 }
 
 export function FormCheckboxField<TFieldValues extends FieldValues>({
-                                                                       control,
-                                                                       name,
-                                                                       label,
-                                                                       children,
-                                                                       isDanger = false,
-                                                                       onCheckedChange
-                                                                   }: FormCheckboxFieldProps<TFieldValues>) {
+                                                                        control,
+                                                                        name,
+                                                                        label,
+                                                                        children,
+                                                                        isDanger = false,
+                                                                        onCheckedChange
+                                                                    }: FormCheckboxFieldProps<TFieldValues>) {
     return (
         <FormField
             control={control}

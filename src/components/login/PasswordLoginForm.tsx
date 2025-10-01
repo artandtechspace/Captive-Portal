@@ -2,7 +2,7 @@ import Link from "next/link";
 import {Loader2} from "lucide-react";
 import {UseFormReturn} from "react-hook-form";
 import {Button} from "@/components/ui/button";
-import {Form, FormItem, FormLabel, FormMessage, FormField, FormControl} from "@/components/ui/form";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {PasswordInput} from "@/components/forms/PasswordInput";
 import {FormCheckboxField} from "@/components/forms/FormCheckboxField";
@@ -144,7 +144,8 @@ export function PasswordLoginForm({form, busy, translateString, termsAgreement, 
                     className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     disabled={!canSubmit || busy}
                 >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden/> : translateString('loginButton', 'Sign in')}
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin"
+                                     aria-hidden/> : translateString('loginButton', 'Sign in')}
                 </Button>
             </form>
         </Form>

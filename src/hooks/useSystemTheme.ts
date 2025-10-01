@@ -1,36 +1,36 @@
-import { useEffect } from "react";
+import {useEffect} from "react";
 
 export const useSystemTheme = () => {
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
 
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const rootElement = document.documentElement;
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const rootElement = document.documentElement;
 
-    const applyTheme = (isDark: boolean) => {
-      rootElement.classList.toggle("dark", isDark);
-    };
+        const applyTheme = (isDark: boolean) => {
+            rootElement.classList.toggle("dark", isDark);
+        };
 
-    applyTheme(mediaQuery.matches);
+        applyTheme(mediaQuery.matches);
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      applyTheme(event.matches);
-    };
+        const handleChange = (event: MediaQueryListEvent) => {
+            applyTheme(event.matches);
+        };
 
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleChange);
+        if (typeof mediaQuery.addEventListener === "function") {
+            mediaQuery.addEventListener("change", handleChange);
 
-      return () => {
-        mediaQuery.removeEventListener("change", handleChange);
-      };
-    }
+            return () => {
+                mediaQuery.removeEventListener("change", handleChange);
+            };
+        }
 
-    mediaQuery.addListener(handleChange);
+        mediaQuery.addListener(handleChange);
 
-    return () => {
-      mediaQuery.removeListener(handleChange);
-    };
-  }, []);
+        return () => {
+            mediaQuery.removeListener(handleChange);
+        };
+    }, []);
 };
