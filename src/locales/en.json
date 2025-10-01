@@ -22,6 +22,9 @@
     "atsAlt": "ATS logo",
     "opnsenseAlt": "OPNsense logo"
   },
+  "serverChange": {
+    "platformNote": "This platform is part of the ATS infrastructure upgrade programme."
+  },
   "usernameLabel": "Username",
   "passwordLabel": "Password",
   "passwordShow": "Show password",
