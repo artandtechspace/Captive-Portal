@@ -328,10 +328,10 @@ export default function LoginPage() {
 
     return (
         <Card className="border border-border/80 bg-background/95 shadow-xl">
-            <CardHeader className="space-y-3 text-center">
-                <CardTitle className="text-2xl font-semibold">{headerContent.title}</CardTitle>
+            <CardHeader className="space-y-3">
+                <CardTitle className="text-2xl font-semibold  text-center">{headerContent.title}</CardTitle>
                 {headerContent.description ? (
-                    <CardDescription className="text-pretty text-sm text-muted-foreground">
+                    <CardDescription className="text-justify text-sm text-muted-foreground">
                         {headerContent.description}
                     </CardDescription>
                 ) : null}

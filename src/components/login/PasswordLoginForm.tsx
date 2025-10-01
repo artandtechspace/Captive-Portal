@@ -119,7 +119,7 @@ export function PasswordLoginForm({form, busy, translateString, termsAgreement, 
                     }}
                     isDanger={Boolean(form.formState.errors.terms)}
                 >
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                         {termsAgreement.prefix ?? ''}{' '}
                         <Link
                             className="font-medium text-primary underline"

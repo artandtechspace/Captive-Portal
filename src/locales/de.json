@@ -23,7 +23,7 @@
     "opnsenseAlt": "OPNsense-Logo"
   },
   "serverChange": {
-    "platformNote": "Diese Plattform ist Teil des ATS-Programms zur Modernisierung der Infrastruktur."
+    "platformNote": "Diese Plattform ist Teil der ATS-Infrastruktur."
   },
   "usernameLabel": "Benutzername",
   "passwordLabel": "Passwort",

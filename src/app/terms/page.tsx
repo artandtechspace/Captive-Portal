@@ -36,7 +36,7 @@ export default function TermsPage() {
                 <Card className="w-full max-w-3xl border border-border bg-card/90 backdrop-blur shadow-xl">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <img alt={String((t('logos.atsAlt') as string) ?? 'ATS')} className="w-24"
-                             src="/images/ats-logo.png"/>
+                             src="/images/ats-logo-light.svg"/>
                         <img alt={String((t('logos.opnsenseAlt') as string) ?? 'OPNsense')} className="w-32"
                              src="/images/opnsense.png"/>
                     </CardHeader>
