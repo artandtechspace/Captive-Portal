@@ -6,6 +6,7 @@ import {LanguageSwitcher} from '@/components/language/LanguageSwitcher';
 import {Toaster} from '@/components/ui/toaster';
 import {useSystemTheme} from '@/hooks/useSystemTheme';
 import {useTranslation} from '@/lib/i18n';
+import Image from 'next/image';
 import Link from "next/link";
 
 type AppLayoutProps = {
@@ -37,19 +38,21 @@ export const AppLayout = ({children}: AppLayoutProps) => {
                 <LanguageSwitcher className="self-end min-[36rem]:absolute min-[36rem]:right-4 min-[36rem]:top-4"/>
                 <div className="flex w-full max-w-sm flex-col gap-4 sm:gap-6">
                     <Link href="#" className="flex items-center gap-2 self-center font-medium">
-                        <img
-                            src="/images/ats-logo-light.svg"
+                        <Image
                             alt={logos.atsAlt ?? "ATS"}
-                            width={140}
-                            height={56}
                             className="h-20 w-auto object-contain dark:hidden"
+                            height={80}
+                            priority
+                            src="/images/ats-logo-light.svg"
+                            width={200}
                         />
-                        <img
-                            src="/images/ats-logo-dark.svg"
+                        <Image
                             alt={logos.atsAlt ?? "ATS"}
-                            width={160}
-                            height={64}
-                            className="h-20 w-auto object-contain hidden dark:block"
+                            className="hidden h-20 w-auto object-contain dark:block"
+                            height={80}
+                            priority
+                            src="/images/ats-logo-dark.svg"
+                            width={200}
                         />
                     </Link>
                     <main className="flex flex-col gap-4 sm:gap-6">
