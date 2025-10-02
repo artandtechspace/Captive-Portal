@@ -19,7 +19,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
                 />
                 <button
                     type="button"
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 transition-colors hover:text-primary dark:text-muted-foreground dark:hover:text-primary"
                     onMouseDown={() => setIsVisible(true)}
                     onMouseUp={() => setIsVisible(false)}
                     onMouseLeave={() => setIsVisible(false)}
@@ -32,7 +32,11 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
                     aria-label={isVisible ? "Hide password" : "Show password"}
                     tabIndex={0}
                 >
-                    {isVisible ? <Eye className="w-4"/> : <EyeOff className="w-4"/>}
+                    {isVisible ? (
+                        <Eye className="h-4 w-4"/>
+                    ) : (
+                        <EyeOff className="h-4 w-4"/>
+                    )}
                 </button>
             </div>
         );
