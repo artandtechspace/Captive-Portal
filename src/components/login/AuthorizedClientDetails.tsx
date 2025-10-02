@@ -85,9 +85,9 @@ export function AuthorizedClientDetails({status, translateString}: AuthorizedCli
     }, [status.macAddress, status.sessionId, status.startTime, translateString]);
 
     const renderDetail = ({label, value}: DetailEntry) => (
-        <div key={label} className="space-y-1">
+        <div key={label} className="space-y-1 break-words">
             <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-            <dd className="text-sm font-semibold text-foreground">{value}</dd>
+            <dd className="text-sm font-semibold text-foreground break-words">{value}</dd>
         </div>
     );
 
