@@ -105,10 +105,6 @@
 
     body {
         @apply bg-background text-foreground min-h-screen;
-        background-image: url('/images/landscape_poli.jpg');
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
     }
 
     #root {

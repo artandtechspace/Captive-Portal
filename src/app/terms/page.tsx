@@ -6,6 +6,9 @@ import TermsContent from "./terms-content";
 
 type TermsLocale = "de" | "en";
 
+export const dynamic = "force-static";
+export const runtime = "nodejs";
+
 const TERMS_FILES: Record<TermsLocale, string> = {
     de: "terms.de.md",
     en: "terms.en.md",
