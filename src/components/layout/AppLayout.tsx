@@ -3,7 +3,6 @@
 import type {ReactNode} from 'react';
 
 import {LanguageSwitcher} from '@/components/language/LanguageSwitcher';
-import {Toaster} from '@/components/ui/toaster';
 import {useSystemTheme} from '@/hooks/useSystemTheme';
 import {useTranslation} from '@/lib/i18n';
 import Image from 'next/image';
@@ -28,40 +27,33 @@ export const AppLayout = ({children}: AppLayoutProps) => {
     useSystemTheme();
 
     return (
-        <div className="relative min-h-screen bg-cover bg-center">
-            <div className="fixed right-4 top-4 z-50">
-                <LanguageSwitcher className="w-fit"/>
+        <div
+            className="relative flex min-h-svh flex-col items-center justify-start gap-4 bg-muted px-4 py-6 sm:gap-6 sm:px-6 md:px-10 md:py-10 min-[36rem]:justify-center">
+            <LanguageSwitcher className="self-end min-[36rem]:absolute min-[36rem]:right-4 min-[36rem]:top-4"/>
+            <div className="flex w-full max-w-sm flex-col gap-4 sm:gap-6">
+                <Link href="#" className="flex items-center gap-2 self-center font-medium">
+                    <Image
+                        alt={logos.atsAlt ?? "ATS"}
+                        className="h-20 w-auto object-contain dark:hidden"
+                        height={80}
+                        priority
+                        src="/images/ats-logo-light.svg"
+                        width={200}
+                    />
+                    <Image
+                        alt={logos.atsAlt ?? "ATS"}
+                        className="hidden h-20 w-auto object-contain dark:block"
+                        height={80}
+                        priority
+                        src="/images/ats-logo-dark.svg"
+                        width={200}
+                    />
+                </Link>
+                <main className="flex flex-col gap-4 sm:gap-6">
+                    {children}
+                </main>
+                <div className="text-balance text-center text-xs text-muted-foreground">{platformNote}</div>
             </div>
-
-            <div
-                className="relative flex min-h-svh flex-col items-center justify-start gap-4 bg-muted px-4 py-6 sm:gap-6 sm:px-6 md:px-10 md:py-10 min-[36rem]:justify-center">
-                <LanguageSwitcher className="self-end min-[36rem]:absolute min-[36rem]:right-4 min-[36rem]:top-4"/>
-                <div className="flex w-full max-w-sm flex-col gap-4 sm:gap-6">
-                    <Link href="#" className="flex items-center gap-2 self-center font-medium">
-                        <Image
-                            alt={logos.atsAlt ?? "ATS"}
-                            className="h-20 w-auto object-contain dark:hidden"
-                            height={80}
-                            priority
-                            src="/images/ats-logo-light.svg"
-                            width={200}
-                        />
-                        <Image
-                            alt={logos.atsAlt ?? "ATS"}
-                            className="hidden h-20 w-auto object-contain dark:block"
-                            height={80}
-                            priority
-                            src="/images/ats-logo-dark.svg"
-                            width={200}
-                        />
-                    </Link>
-                    <main className="flex flex-col gap-4 sm:gap-6">
-                        {children}
-                    </main>
-                    <div className="text-balance text-center text-xs text-muted-foreground">{platformNote}</div>
-                </div>
-            </div>
-            <Toaster/>
         </div>
     );
 };
