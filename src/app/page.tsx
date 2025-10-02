@@ -5,11 +5,12 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useForm} from 'react-hook-form';
 
 import {AnonymousLoginSection} from '@/components/login/AnonymousLoginSection';
+import {AuthorizedClientDetails} from '@/components/login/AuthorizedClientDetails';
 import {LoginFormValues, PasswordLoginForm} from '@/components/login/PasswordLoginForm';
 import {LogoutSection} from '@/components/login/LogoutSection';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {useToast} from '@/components/ui/use-toast';
-import {CaptivePortalClient, ClientState, type LogonRequest} from '@/lib/api';
+import {CaptivePortalClient, ClientState, type ClientStatusResponse, type LogonRequest} from '@/lib/api';
 import {useTranslations} from '@/lib/i18n';
 
 const client = new CaptivePortalClient();
@@ -41,6 +42,7 @@ export default function LoginPage() {
 
     const [zoneId, setZoneId] = useState('');
     const [state, setState] = useState<LoginState>('checking');
+    const [clientStatus, setClientStatus] = useState<ClientStatusResponse | null>(null);
     const [busy, setBusy] = useState(false);
 
     const form = useForm<LoginFormValues>({
@@ -131,6 +133,7 @@ export default function LoginPage() {
                 throw new Error(translateString('errors.serverUnavailable', 'Server unavailable.'));
             }
             const {clientState} = res.data;
+            setClientStatus(res.data);
             const authType = (res.data as { authType?: string }).authType;
             if (clientState === ClientState.AUTHORIZED) {
                 setState('authorized');
@@ -142,6 +145,7 @@ export default function LoginPage() {
         } catch (error) {
             toastError(error, 'errors.serverUnavailable', 'Server unavailable.');
             setState('password');
+            setClientStatus(null);
         }
     }, [toastError, translateString, withZone]);
 
@@ -195,6 +199,7 @@ export default function LoginPage() {
                 if (!res.ok || !res.data) {
                     throw new Error(translateString('errors.serverUnavailable', 'Server unavailable.'));
                 }
+                setClientStatus(res.data);
                 if (res.data.clientState === ClientState.AUTHORIZED) {
                     redirect(true);
                 } else {
@@ -227,6 +232,7 @@ export default function LoginPage() {
             if (!res.ok || !res.data) {
                 throw new Error(translateString('errors.serverUnavailable', 'Server unavailable.'));
             }
+            setClientStatus(res.data);
             if (res.data.clientState === ClientState.AUTHORIZED) {
                 redirect(false);
             } else {
@@ -250,6 +256,7 @@ export default function LoginPage() {
             if (!res.ok) {
                 throw new Error(translateString('errors.serverUnavailable', 'Server unavailable.'));
             }
+            setClientStatus(null);
             window.location.reload();
         } catch (error) {
             toastError(error, 'errors.serverUnavailable', 'Server unavailable.');
@@ -325,6 +332,8 @@ export default function LoginPage() {
     const showPassword = state === 'password';
     const showAnonymous = state === 'anonymous';
     const showLogout = state === 'authorized';
+    const authorizedStatus =
+        clientStatus?.clientState === ClientState.AUTHORIZED ? clientStatus : null;
 
     return (
         <Card className="border border-border/80 bg-background/95 shadow-xl">
@@ -365,6 +374,12 @@ export default function LoginPage() {
                     />
                 )}
 
+                {authorizedStatus ? (
+                    <AuthorizedClientDetails
+                        status={authorizedStatus}
+                        translateString={translateString}
+                    />
+                ) : null}
                 {showLogout && (
                     <LogoutSection
                         busy={busy}

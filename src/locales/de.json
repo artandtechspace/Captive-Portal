@@ -43,6 +43,18 @@
   "logoutConfirmDescription": "Dadurch wird Ihre aktuelle Sitzung beendet und Sie werden vom ATS-Netzwerk getrennt.",
   "logoutConfirmButton": "Abmelden",
   "logoutCancelButton": "Verbunden bleiben",
+  "authorizedDetails": {
+    "heading": "Verbindungsdetails",
+    "title": "Aktive Verbindung",
+    "username": "Benutzername",
+    "ipAddress": "IP-Adresse",
+    "macAddress": "MAC-Adresse",
+    "sessionId": "Sitzungs-ID",
+    "connectedSince": "Verbunden seit",
+    "notAvailable": "Keine Angabe",
+    "showDetails": "Weitere Details anzeigen",
+    "hideDetails": "Details ausblenden"
+  },
   "errors": {
     "zoneConfigMissing": "Die Zonenkonfiguration ist nicht verfügbar.",
     "serverUnavailable": "Verbindung zum Authentifizierungsserver nicht möglich.",

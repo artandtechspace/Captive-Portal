@@ -43,6 +43,18 @@
   "logoutConfirmDescription": "This will end your current session and disconnect you from the ATS network.",
   "logoutConfirmButton": "Sign out",
   "logoutCancelButton": "Stay connected",
+  "authorizedDetails": {
+    "heading": "Connection details",
+    "title": "Active connection",
+    "username": "Username",
+    "ipAddress": "IP address",
+    "macAddress": "MAC address",
+    "sessionId": "Session ID",
+    "connectedSince": "Connected since",
+    "notAvailable": "Not available",
+    "showDetails": "Show additional details",
+    "hideDetails": "Hide additional details"
+  },
   "errors": {
     "zoneConfigMissing": "Zone configuration is not available.",
     "serverUnavailable": "Unable to connect to the authentication server.",
