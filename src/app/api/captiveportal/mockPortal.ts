@@ -1,13 +1,21 @@
-import {NextRequest, NextResponse} from "next/server";
-import {ClientState, type ClientStatusResponse} from "@/lib/api/dtos";
+import { NextRequest, NextResponse } from "next/server";
+import {
+    ClientState,
+    type ClientStatusResponse,
+    type AuthorizedClientStatusResponse,
+    type UnauthorizedClientStatusResponse,
+} from "@/lib/api/dtos";
 
-type AuthTypeMode = "password" | "none";
+// --- Configuration ---
 
-const AUTH_TYPE_MODE: AuthTypeMode = "password";
-
-const VALID_USERS: Record<string, string> = {
-    maker: "secret",
-    "ats-demo": "ats-demo123",
+const MOCK_CONFIG = {
+    // Set to 'none' to simulate a "Terms of Use only" login without password
+    authType: "normal" as "normal" | "none",
+    // Hardcoded credentials for development testing
+    validUsers: {
+        maker: "secret",
+        "ats-demo": "ats-demo123",
+    } as Record<string, string>,
 };
 
 type Session = {
@@ -15,110 +23,158 @@ type Session = {
     authorized: boolean;
     sessionId: string;
     startTime: number;
+    mac: string;
 };
 
+// In-memory session storage: Map<"zoneId:ip", Session>
 const SESSIONS = new Map<string, Session>();
 
-function makeKey(zoneid: number, ip: string) {
-    return `${zoneid}:${ip}`;
-}
+// --- Helper Functions ---
 
-function fakeMacFromIp(_ip: string): string {
-    return "02:00:00:00:00:01";
-}
-
+/**
+ * Extracts the client IP address from the request headers.
+ * Fallback to localhost for development environments.
+ */
 function getIp(req: NextRequest): string {
     const header = req.headers.get("x-forwarded-for");
-    if (header) {
-        return header.split(",")[0].trim();
-    }
-    return "127.0.0.1";
+    return header ? header.split(",")[0].trim() : "127.0.0.1";
 }
 
-export function buildStatus(zoneid: number, ip: string): ClientStatusResponse {
-    const sess = SESSIONS.get(makeKey(zoneid, ip));
+/**
+ * Creates a unique key for the session storage based on zone and IP.
+ */
+function makeSessionKey(zoneId: number, ip: string) {
+    return `${zoneId}:${ip}`;
+}
 
-    let isAuthorized = !!(sess && sess.authorized);
-    if (AUTH_TYPE_MODE === "none") {
-        isAuthorized = true;
-    }
+/**
+ * Generates a deterministic fake MAC address based on the IP address.
+ * This ensures the MAC stays consistent for the same IP during reloads.
+ */
+function fakeMacFromIp(ip: string): string {
+    // Simple hash-like summation of IP parts
+    const sum = ip.split(".").reduce((acc, part) => acc + parseInt(part, 10), 0);
+    // Create a hex string padded to 2 chars
+    const hex = (sum % 255).toString(16).padStart(2, "0");
+    return `02:00:00:00:00:${hex}`;
+}
 
+/**
+ * Constructs the API response object based on the current session state.
+ * Mimics the OPNsense JSON structure using our DTOs.
+ */
+function buildResponse(zoneId: number, ip: string): ClientStatusResponse {
+    const key = makeSessionKey(zoneId, ip);
+    const session = SESSIONS.get(key);
     const macAddress = fakeMacFromIp(ip);
 
-    if (isAuthorized) {
-        return {
+    // Case 1: User is authorized (Session exists and is valid)
+    if (session && session.authorized) {
+        const response: AuthorizedClientStatusResponse = {
             clientState: ClientState.AUTHORIZED,
             ipAddress: ip,
-            macAddress: macAddress,
-            userName: sess?.user ?? "anonymous",
-            sessionId: sess?.sessionId ?? crypto.randomUUID(),
-            startTime: sess?.startTime ?? Date.now() / 1000,
+            macAddress: session.mac,
+            userName: session.user,
+            sessionId: session.sessionId,
+            startTime: session.startTime,
         };
-    } else {
-        return {
-            clientState: ClientState.NOT_AUTHORIZED,
-            ipAddress: ip,
-            macAddress: macAddress,
-            authType: AUTH_TYPE_MODE === "none" ? "none" : "normal",
-        };
+        return response;
     }
+
+    // Case 2: User is NOT authorized
+    const response: UnauthorizedClientStatusResponse = {
+        clientState: ClientState.NOT_AUTHORIZED,
+        ipAddress: ip,
+        macAddress: macAddress,
+        authType: MOCK_CONFIG.authType,
+    };
+    return response;
 }
 
-export function handleStatus(req: NextRequest) {
-    const zoneid = 0;
-    const ip = getIp(req);
+// --- Route Handlers ---
 
-    const result = buildStatus(zoneid, ip);
+/**
+ * Handles GET requests to check the current status of the client.
+ */
+export function handleStatus(req: NextRequest, zoneid: string = "0") {
+    const zoneidNum = parseInt(zoneid, 10);
+    const ip = getIp(req);
+    const result = buildResponse(zoneidNum, ip);
+
     return NextResponse.json(result);
 }
 
-export async function handleLogon(req: NextRequest) {
-    const zoneid = 0;
+/**
+ * Handles POST requests to log a user in.
+ * Supports both JSON and x-www-form-urlencoded bodies.
+ */
+export async function handleLogon(req: NextRequest, zoneid: string = "0") {
+    const zoneidNum = parseInt(zoneid, 10);
     const ip = getIp(req);
 
-    const contentType = req.headers.get("content-type") || "";
     let user = "";
     let password = "";
 
-    if (contentType.includes("application/x-www-form-urlencoded")) {
-        const text = await req.text();
-        const params = new URLSearchParams(text);
-        user = params.get("user") ?? "";
-        password = params.get("password") ?? "";
-    } else if (contentType.includes("application/json")) {
-        const body = (await req.json().catch(() => ({}))) as any;
-        user = body.user ?? "";
-        password = body.password ?? "";
+    // Parse request body based on Content-Type
+    const contentType = req.headers.get("content-type") || "";
+    try {
+        if (contentType.includes("application/x-www-form-urlencoded")) {
+            const text = await req.text();
+            const params = new URLSearchParams(text);
+            user = params.get("user") ?? "";
+            password = params.get("password") ?? "";
+        } else if (contentType.includes("application/json")) {
+            const body = (await req.json().catch(() => ({}))) as any;
+            user = body.user ?? "";
+            password = body.password ?? "";
+        }
+    } catch (error) {
+        console.error("Failed to parse logon body:", error);
     }
 
-    let success: boolean;
-    if (AUTH_TYPE_MODE === "none") {
+    // Determine authentication success
+    let success = false;
+
+    if (MOCK_CONFIG.authType === "none") {
+        // For 'none', we accept any login attempt (usually just terms acceptance)
         success = true;
+        if (!user) user = "anonymous";
     } else {
-        const expected = VALID_USERS[user];
-        success = expected !== undefined && expected === password;
+        // Validate credentials against the hardcoded list
+        const expectedPassword = MOCK_CONFIG.validUsers[user];
+        if (expectedPassword && expectedPassword === password) {
+            success = true;
+        }
     }
 
+    // If successful, create a session
     if (success) {
         const sessionId = crypto.randomUUID();
-        SESSIONS.set(makeKey(zoneid, ip), {
+        SESSIONS.set(makeSessionKey(zoneidNum, ip), {
             user,
             authorized: true,
             sessionId,
-            startTime: Date.now(),
+            startTime: Date.now() / 1000, // OPNsense usually returns Unix timestamp in seconds
+            mac: fakeMacFromIp(ip),
         });
     }
 
-    const result = buildStatus(zoneid, ip);
+    // Return the status (Authorized or Not Authorized)
+    // Note: OPNsense returns 200 OK even for failed logins, just with state NOT_AUTHORIZED
+    const result = buildResponse(zoneidNum, ip);
     return NextResponse.json(result);
 }
 
-export function handleLogoff(req: NextRequest) {
-    const zoneid = 0;
+/**
+ * Handles POST requests to log a user out.
+ */
+export function handleLogoff(req: NextRequest, zoneid: string = "0") {
+    const zoneidNum = parseInt(zoneid, 10);
     const ip = getIp(req);
 
-    SESSIONS.delete(makeKey(zoneid, ip));
+    // Remove the session
+    SESSIONS.delete(makeSessionKey(zoneidNum, ip));
 
-    const result = buildStatus(zoneid, ip);
+    const result = buildResponse(zoneidNum, ip);
     return NextResponse.json(result);
 }

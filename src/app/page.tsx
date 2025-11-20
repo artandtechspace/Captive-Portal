@@ -82,6 +82,7 @@ export default function LoginPage() {
                             confirmText={translateString('logoutConfirmButton', 'Sign out')}
                             cancelText={translateString('logoutCancelButton', 'Stay connected')}
                             onConfirm={logout}
+                            status={authorizedStatus}
                         />
                     )}
                 </CardContent>
