@@ -1,46 +1,38 @@
 # Design- und Implementierungsrichtlinien für Captive-Portale
 
-Diese Richtlinien fassen die wichtigsten Anforderungen für die Gestaltung von Splash- und Login-Seiten in Captive-Portalen zusammen. Sie sollen sicherstellen, dass die Portale auf eingeschränkten Mini-Browsern zuverlässig funktionieren und eine gute Benutzererfahrung bieten.
+Diese Richtlinien basieren auf technischen Einschränkungen von Captive Network Assistants (CNA) unter iOS, macOS, Android und Windows.
 
 ## Ressourcengröße und Performance
 
-- Halte die initiale HTML-Datei kleiner als 128 KB, damit iOS-Geräte die Seite korrekt anzeigen können.
-- Vermeide inline Styles, Bilder und Skripte. Lade stattdessen optimierte externe Ressourcen nach.
-- Minimiere JavaScript und CSS, um Ladezeiten zu verkürzen.
+- **Initiales HTML-Limit (iOS):** Die *initiale* HTML-Datei (ohne externe Assets) muss zwingend **unter 128 KB** bleiben. Größere HTML-Dateien können dazu führen, dass das Portal auf iOS-Geräten gar nicht angezeigt wird, obwohl Assets nachgeladen werden dürften.
+- **Vermeidung von Inline-Code:** Da das HTML-Limit strikt ist, lagere CSS und JavaScript in externe Dateien aus.
+
+## Technische Auslösung und Netzwerkverhalten
+
+- **HTTP vs. HTTPS Trigger:** Das Captive-Portal wird in der Regel durch eine HTTP-Anfrage (Port 80) ausgelöst. HTTPS-Anfragen (Port 443) können nicht ohne Zertifikatswarnung umgeleitet werden und führen oft zu einem Timeout ohne Portal-Anzeige.
+- **Erkennungs-URLs (Status Codes):**
+    - Apple-Geräte prüfen auf eine "Success"-Seite (Status 200) unter URLs wie `http://captive.apple.com/hotspot-detect.html`.
+    - Android/Google-Geräte prüfen oft auf einen 204 (No Content) Status (z.B. `http://connectivitycheck.gstatic.com/generate_204`).
+    - **Implikation:** Das Portal muss diese Requests abfangen und stattdessen die Login-Seite (Status 200) ausliefern, solange der Nutzer nicht authentifiziert ist.
+- **Caching verhindern:** Sende strikte HTTP-Header (`Cache-Control: no-cache, no-store, must-revalidate`), um zu verhindern, dass Browser die Portal-Seite cachen und den Login-Flow beim nächsten Mal überspringen.
 
 ## JavaScript und Speicher
 
-- Plane das Portal so, dass es ohne `sessionStorage` und `localStorage` funktioniert, da diese in den Captive-Portalen von iOS und macOS deaktiviert sein können.
-- Verzichte auf modale Browserdialoge wie `window.alert()` oder `window.confirm()`, da sie nicht dargestellt werden.
-- Nutze alternative Mechanismen (z. B. leichte State-Management-Lösungen) statt persistenter Cookies, da diese beim Schließen der Portalansicht verloren gehen.
+- **Keine Persistenz (Cookies/Storage):** Verlasse dich **niemals** auf `localStorage`, `sessionStorage` oder persistente Cookies für dauerhafte Einstellungen (wie "Sprache merken"). CNAs agieren oft als "Wegwerf-Sessions": Sobald der User auf "Fertig" klickt, werden alle Daten gelöscht.
+- **Keine Modalen Dialoge:** `window.alert()` und `window.confirm()` werden in vielen CNA-Browsern unterdrückt und sollten durch HTML-Overlays ersetzt werden.
 
 ## Responsive Gestaltung und Bedienung
 
-- Entwerfe Layouts, die vollständig innerhalb eines Fensters mit fester Größe von 900 × 572 px dargestellt werden können.
-- Achte auf einfache, leichtgewichtige Layouts und vermeide große Bilder oder komplexe Komponenten.
-- Stelle sicher, dass wichtige Bedienelemente (Formulare, Buttons, Hinweise) ohne Scrollen erreichbar sind.
-
-## Benutzererfahrung
-
-- Gestalte den Anmeldeprozess so kurz wie möglich, da Cookies und lokale Speicherung nicht erhalten bleiben.
-- Verzichte auf unnötige Weiterleitungen oder komplexe Single-Page-Applications.
-- Biete eine barrierearme Darstellung mit klaren Anweisungen und sichtbarem Fokus-Management.
-
-## Sicherheit und Datenschutz
-
-- Stelle sicher, dass das Portal immer per HTTPS erreichbar ist.
-- Biete transparente Datenschutz- und Einwilligungshinweise an und protokolliere notwendige Opt-ins (z. B. für Marketing).
-- Berücksichtige die DSGVO bei der Erfassung und Verarbeitung personenbezogener Daten.
+- **Viewport:** Das Layout muss in einem Fenster von **900 × 572 px** (typische Desktop-CNA-Größe) ohne horizontales Scrollen funktionieren.
+- **Manuelles Auslösen:** Biete Nutzern den Hinweis, eine explizite HTTP-Seite (z.B. `http://neverssl.com`) aufzurufen, falls sich das Portal nicht automatisch öffnet. Dies umgeht Probleme mit HSTS/HTTPS.
 
 ## Apple/macOS-spezifische Einschränkungen
 
-- Neue Fenster oder Tabs können nicht geöffnet werden, plane alle Interaktionen innerhalb derselben Ansicht.
-- Cookies werden nicht persistent gespeichert und gehen nach dem Schließen der Captive Network Assistant (CNA) verloren.
-- Die CNA lässt sich nicht skalieren oder minimieren; überlange Seiten werden abgeschnitten.
-- Teste das Portal regelmäßig auf iOS- und macOS-Geräten, um die Einhaltung dieser Einschränkungen zu überprüfen.
+- **Keine neuen Fenster (`target="_blank"`):** Links, die versuchen, ein neues Fenster zu öffnen, werden im CNA oft ignoriert (öffnen im selben Frame) oder blockiert. Führe alle Navigationen im selben Fenster (`_self`) durch.
+- **Ein-Seiten-Logik:** Versuche, den gesamten Login-Prozess auf einer URL oder mit minimalen Redirects abzubilden, um die CNA-Session stabil zu halten.
 
-## Teststrategie
+## Teststrategie und bekannte Konflikte
 
-- Prüfe jede Iteration des Portals auf den wichtigsten Plattformen (iOS, macOS, Android, Windows).
-- Dokumentiere Abweichungen und Workarounds für Plattformbeschränkungen.
-- Automatisiere Smoke-Tests soweit möglich, um Regressionen zu vermeiden.
+- **Docker-Netzwerk-Konflikt (Linux):** Entwickler mit Docker auf Linux haben oft Probleme, Captive Portals (z.B. im ICE/Bahn) zu erreichen.
+    - *Ursache:* Das Standard-Docker-Netzwerk (`172.17.0.0/16` oder `172.18.0.0/16`) überschneidet sich oft mit den IP-Bereichen öffentlicher Hotspots.
+    - *Lösung:* Vor dem Testen Docker stoppen oder die `default-address-pools` in der `daemon.json` ändern.
