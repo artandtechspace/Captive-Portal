@@ -1,12 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {useEffect, useMemo} from "react";
 import Markdown from "react-markdown";
 
 import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {type Locale, useTranslation, useTranslations} from "@/lib/i18n";
 
 const TERMS_DICTIONARY: Record<
@@ -84,54 +83,32 @@ export default function TermsContent({deContent, enContent}: { deContent: string
     const termsContent = locale === "en" ? enContent : deContent;
 
     return (
-        <main className="blur-background relative min-h-screen bg-background/90">
-            <div className="container mx-auto flex min-h-screen items-center justify-center px-4 py-16">
-                <Card className="w-full max-w-3xl border border-border bg-card/90 shadow-xl backdrop-blur">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <Link href="#" className="flex items-center gap-2 self-center font-medium">
-                            <Image
-                                alt={logos.atsAlt ?? "ATS"}
-                                className="h-20 w-auto object-contain dark:hidden"
-                                height={80}
-                                priority
-                                src="/images/ats-logo-light.svg"
-                                width={200}
-                            />
-                            <Image
-                                alt={logos.atsAlt ?? "ATS"}
-                                className="hidden h-20 w-auto object-contain dark:block"
-                                height={80}
-                                priority
-                                src="/images/ats-logo-dark.svg"
-                                width={200}
-                            />
-                        </Link>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <BackButton label={dictionary.backLabel}/>
-                            <div className="text-sm text-muted-foreground sm:text-right">
-                                <p>
-                                    {dictionary.effectiveLabel}: {today}
-                                </p>
-                                <p>
-                                    {dictionary.updatedLabel}: {dictionary.changedDate}
-                                </p>
-                            </div>
+            <Card className="bg-background">
+                <CardHeader className="space-y-3">
+                    <CardTitle className="text-2xl font-medium text-foreground">
+                        {dictionary.heading}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <BackButton label={dictionary.backLabel}/>
+                        <div className="text-sm text-muted-foreground sm:text-right">
+                            <p>
+                                {dictionary.effectiveLabel}: {today}
+                            </p>
+                            <p>
+                                {dictionary.updatedLabel}: {dictionary.changedDate}
+                            </p>
                         </div>
-                        <CardTitle className="text-2xl font-medium text-foreground">
-                            {dictionary.heading}
-                        </CardTitle>
-                        <article className="prose prose-sm max-w-none text-muted-foreground dark:prose-invert">
-                            <Markdown>{termsContent}</Markdown>
-                        </article>
-                        <div className="flex justify-center">
-                            <BackButton label={dictionary.backLabel}/>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </main>
+                    </div>
+                    <article className="prose prose-sm max-w-none text-muted-foreground dark:prose-invert">
+                        <Markdown>{termsContent}</Markdown>
+                    </article>
+                    <div className="flex justify-center">
+                        <BackButton label={dictionary.backLabel}/>
+                    </div>
+                </CardContent>
+            </Card>
     );
 }
 

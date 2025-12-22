@@ -6,9 +6,9 @@ import {useForm, type UseFormReturn} from 'react-hook-form';
 import type {LoginFormValues} from '@/components/login/PasswordLoginForm';
 import {useToast} from '@/components/ui/use-toast';
 import {
+    type AuthorizedClientStatusResponse,
     CaptivePortalClient,
     ClientState,
-    type AuthorizedClientStatusResponse,
     type ClientStatusResponse,
     type LogonRequest,
 } from '@/lib/api';
@@ -102,8 +102,7 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
         const raw = searchParams.get('redirurl');
         if (!raw) return null;
         try {
-            const url = /^https?:\/\//i.test(raw) ? new URL(raw) : new URL(`https://${raw}`);
-            return url;
+            return /^https?:\/\//i.test(raw) ? new URL(raw) : new URL(`https://${raw}`);
         } catch {
             return null;
         }

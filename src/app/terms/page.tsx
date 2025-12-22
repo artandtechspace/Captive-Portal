@@ -1,34 +1,57 @@
-import type {Metadata} from "next";
-import fs from "fs/promises";
-import path from "path";
+"use client";
+
+import * as React from "react";
 
 import TermsContent from "./terms-content";
+import { AppLayout } from "@/components/layout/AppLayout";
 
-type TermsLocale = "de" | "en";
+export default function TermsPage() {
+  const [deContent, setDeContent] = React.useState<string>("");
+  const [enContent, setEnContent] = React.useState<string>("");
+  const [error, setError] = React.useState<string | null>(null);
 
-export const dynamic = "force-static";
-export const runtime = "nodejs";
+  React.useEffect(() => {
+    let cancelled = false;
 
-const TERMS_FILES: Record<TermsLocale, string> = {
-    de: "terms.de.md",
-    en: "terms.en.md",
-};
+    const load = async () => {
+      try {
+        const [deRes, enRes] = await Promise.all([
+          fetch("/terms/terms.de.md", { cache: "force-cache" }),
+          fetch("/terms/terms.en.md", { cache: "force-cache" }),
+        ]);
 
-async function readTermsMarkdown(locale: TermsLocale): Promise<string> {
-    const filePath = path.join(process.cwd(), "content", "terms", TERMS_FILES[locale]);
-    return fs.readFile(filePath, "utf8");
-}
+        if (!deRes.ok || !enRes.ok) {
+          throw new Error(
+            `Failed to load terms (de: ${deRes.status}, en: ${enRes.status})`,
+          );
+        }
 
-export const metadata: Metadata = {
-    title: "Nutzungsbedingungen",
-    description: "Regeln für die WLAN-Nutzung im ATS Netzwerk.",
-};
+        const [de, en] = await Promise.all([deRes.text(), enRes.text()]);
 
-export default async function TermsPage() {
-    const [deContent, enContent] = await Promise.all([
-        readTermsMarkdown("de"),
-        readTermsMarkdown("en"),
-    ]);
+        if (cancelled) return;
+        setDeContent(de);
+        setEnContent(en);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "Failed to load terms.");
+      }
+    };
 
-    return <TermsContent deContent={deContent} enContent={enContent}/>;
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <AppLayout contentClassName="max-w-3xl">
+      {error ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : (
+        <TermsContent deContent={deContent} enContent={enContent} />
+      )}
+    </AppLayout>
+  );
 }

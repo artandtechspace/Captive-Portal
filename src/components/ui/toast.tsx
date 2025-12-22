@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as ToastPrimitives from '@radix-ui/react-toast';
+import { Toast as ToastPrimitives } from 'radix-ui';
 import {X} from 'lucide-react';
 
 import {cn} from '@/lib/utils';
