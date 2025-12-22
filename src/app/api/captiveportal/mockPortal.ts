@@ -1,10 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-    ClientState,
-    type ClientStatusResponse,
-    type AuthorizedClientStatusResponse,
-    type UnauthorizedClientStatusResponse,
-} from "@/lib/api/dtos";
+import {NextRequest, NextResponse} from "next/server";
+import {type AuthorizedClientStatusResponse, ClientState, type ClientStatusResponse,} from "@/lib/api/dtos";
 
 // --- Configuration ---
 
@@ -70,7 +65,7 @@ function buildResponse(zoneId: number, ip: string): ClientStatusResponse {
 
     // Case 1: User is authorized (Session exists and is valid)
     if (session && session.authorized) {
-        const response: AuthorizedClientStatusResponse = {
+        return {
             clientState: ClientState.AUTHORIZED,
             ipAddress: ip,
             macAddress: session.mac,
@@ -78,17 +73,15 @@ function buildResponse(zoneId: number, ip: string): ClientStatusResponse {
             sessionId: session.sessionId,
             startTime: session.startTime,
         };
-        return response;
     }
 
     // Case 2: User is NOT authorized
-    const response: UnauthorizedClientStatusResponse = {
+    return {
         clientState: ClientState.NOT_AUTHORIZED,
         ipAddress: ip,
         macAddress: macAddress,
         authType: MOCK_CONFIG.authType,
     };
-    return response;
 }
 
 // --- Route Handlers ---
