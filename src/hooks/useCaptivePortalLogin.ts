@@ -373,7 +373,7 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
             target.searchParams.set('refresh', '');
             return target.toString();
         }
-        return 'http://captive.apple.com';
+        return 'https://artandtech.space';
     }, [getRedirectTarget]);
 
     return {

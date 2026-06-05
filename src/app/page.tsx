@@ -1,6 +1,6 @@
 'use client';
 
-import { ViewTransition } from 'react';
+import { useEffect, ViewTransition } from 'react';
 
 import {Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {AppLayout} from '@/components/layout/AppLayout';
 import {useCaptivePortalLogin} from '@/hooks/useCaptivePortalLogin';
 import {useTranslations} from "@/lib/i18n";
 import {BackgroundGlow} from "@/components/ui/BackgroundGlow";
+import {useIsMobile} from "@/hooks/use-mobile";
 
 export default function LoginPage() {
     const {
@@ -34,6 +35,16 @@ export default function LoginPage() {
     } = useCaptivePortalLogin();
 
     const {t} = useTranslations();
+    const isMobile = useIsMobile();
+
+    useEffect(() => {
+        if (state === 'authorized' && isMobile) {
+            const timer = setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [state, isMobile, redirectUrl]);
 
     const platformNote = (() => {
         const value = t("serverChange.platformNote");
