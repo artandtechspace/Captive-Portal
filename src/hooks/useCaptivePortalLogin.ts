@@ -229,7 +229,7 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
                 }
                 setClientStatus(res.data);
                 if (res.data.clientState === ClientState.AUTHORIZED) {
-                    redirect(true);
+                    setState('authorized');
                 } else {
                     form.setError('password', {
                         type: 'manual',
@@ -262,7 +262,7 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
             }
             setClientStatus(res.data);
             if (res.data.clientState === ClientState.AUTHORIZED) {
-                redirect(false);
+                setState('authorized');
             } else {
                 toast({
                     title: translateString('errors.anonymousFailed', 'Anonymous login failed.'),
