@@ -104,8 +104,12 @@ export class CaptivePortalClient {
 
         const contentType = response.headers.get('content-type') ?? '';
         if (!contentType.includes('application/json') && !contentType.includes('application/captive+json')) {
-            const text = await response.text();
-            return text ? (JSON.parse(text) as T) : null;
+            try {
+                const text = await response.text();
+                return text ? (JSON.parse(text) as T) : null;
+            } catch {
+                return null;
+            }
         }
 
         try {

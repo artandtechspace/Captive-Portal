@@ -1,7 +1,7 @@
 'use client'
 
 import {useCallback, useState} from 'react'
-import {Button} from "../../../../../../WebstormProjects/ats_captive_portal/src/components/ui/button"
+import {Button} from "@/components/ui/button"
 import {Copy} from 'lucide-react'
 
 // A lightweight, drop-in component for rendering and copying manual metadata.

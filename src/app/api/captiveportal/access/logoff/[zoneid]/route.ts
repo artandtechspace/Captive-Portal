@@ -1,6 +1,12 @@
 import { handleLogoff } from "../../../mockPortal";
 import {NextRequest} from "next/server";
 
+export const dynamic = "force-dynamic";
+
+export function generateStaticParams() {
+    return [{ zoneid: "mock" }];
+}
+
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ zoneid: string }> }

@@ -2,11 +2,14 @@ import {useEffect} from "react";
 
 export const useSystemTheme = () => {
     useEffect(() => {
-        if (typeof window === "undefined") {
+        if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
             return;
         }
 
         const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        if (!mediaQuery) {
+            return;
+        }
         const rootElement = document.documentElement;
 
         const applyTheme = (isDark: boolean) => {

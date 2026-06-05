@@ -1,6 +1,12 @@
 import { NextRequest } from "next/server";
 import { handleLogon } from "../../../mockPortal";
 
+export const dynamic = "force-dynamic";
+
+export function generateStaticParams() {
+    return [{ zoneid: "mock" }];
+}
+
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ zoneid: string }> }

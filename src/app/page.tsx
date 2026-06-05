@@ -10,7 +10,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {AppLayout} from '@/components/layout/AppLayout';
 import {useCaptivePortalLogin} from '@/hooks/useCaptivePortalLogin';
 import {useTranslations} from "@/lib/i18n";
-import {BackgroundBeams} from "@/components/ui/shadcn-io/background-beams";
+import {BackgroundGlow} from "@/components/ui/BackgroundGlow";
 
 export default function LoginPage() {
     const {
@@ -40,7 +40,7 @@ export default function LoginPage() {
 
     return (
         <div className="relative">
-            <BackgroundBeams className="absolute inset-0"/>
+            <BackgroundGlow className="absolute inset-0"/>
             <AppLayout platformNote={platformNote}>
                 <Card className="bg-background">
                     <CardHeader className="space-y-3">
