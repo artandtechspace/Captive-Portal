@@ -3,6 +3,7 @@
 import { ViewTransition } from 'react';
 
 import {Loader2} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 
 import {AnonymousLoginSection} from '@/components/login/AnonymousLoginSection';
 import {AuthorizedClientDetails} from '@/components/login/AuthorizedClientDetails';
@@ -26,6 +27,7 @@ export default function LoginPage() {
         showAnonymous,
         showLogout,
         authorizedStatus,
+        redirectUrl,
         login,
         loginAnonymous,
         logout,
@@ -99,19 +101,27 @@ export default function LoginPage() {
                                 <AuthorizedClientDetails status={authorizedStatus} translateString={translateString}/>
                             ) : null}
                             {showLogout && (
-                                <LogoutSection
-                                    busy={busy}
-                                    triggerLabel={translateString('logoutButton', 'Sign out')}
-                                    confirmTitle={translateString('logoutConfirmTitle', 'Sign out from the network?')}
-                                    confirmDescription={translateString(
-                                        'logoutConfirmDescription',
-                                        'This will end your current session and disconnect you from the ATS network.',
-                                    )}
-                                    confirmText={translateString('logoutConfirmButton', 'Sign out')}
-                                    cancelText={translateString('logoutCancelButton', 'Stay connected')}
-                                    onConfirm={logout}
-                                    status={authorizedStatus}
-                                />
+                                <div className="space-y-4">
+                                    <Button asChild className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                                        <a href={redirectUrl} target="_self">
+                                            {translateString('continueButton', 'Start surfing')}
+                                        </a>
+                                    </Button>
+
+                                    <LogoutSection
+                                        busy={busy}
+                                        triggerLabel={translateString('logoutButton', 'Sign out')}
+                                        confirmTitle={translateString('logoutConfirmTitle', 'Sign out from the network?')}
+                                        confirmDescription={translateString(
+                                            'logoutConfirmDescription',
+                                            'This will end your current session and disconnect you from the ATS network.',
+                                        )}
+                                        confirmText={translateString('logoutConfirmButton', 'Sign out')}
+                                        cancelText={translateString('logoutCancelButton', 'Stay connected')}
+                                        onConfirm={logout}
+                                        status={authorizedStatus}
+                                    />
+                                </div>
                             )}
                         </CardContent>
                     </Card>

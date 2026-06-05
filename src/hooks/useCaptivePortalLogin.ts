@@ -48,6 +48,7 @@ type UseCaptivePortalLoginResult = {
     showAnonymous: boolean;
     showLogout: boolean;
     authorizedStatus: AuthorizedClientStatusResponse | null;
+    redirectUrl: string;
     login: (values: LoginFormValues) => Promise<void>;
     loginAnonymous: () => Promise<void>;
     logout: () => Promise<void>;
@@ -363,6 +364,18 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
         ? clientStatus
         : null;
 
+    const redirectUrl = useMemo(() => {
+        const target = getRedirectTarget();
+        if (target) {
+            if (target.protocol === 'http:') {
+                target.protocol = 'https:';
+            }
+            target.searchParams.set('refresh', '');
+            return target.toString();
+        }
+        return 'http://captive.apple.com';
+    }, [getRedirectTarget]);
+
     return {
         state,
         busy,
@@ -374,6 +387,7 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
         showAnonymous,
         showLogout,
         authorizedStatus,
+        redirectUrl,
         login,
         loginAnonymous,
         logout,

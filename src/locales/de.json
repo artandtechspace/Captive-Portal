@@ -38,6 +38,7 @@
   "anonymousButton": "Anonym anmelden",
   "anonymousDescription": "Die anonyme Anmeldung steht zur Verfügung, wenn kurzfristiger Zugang ohne persönliche Zugangsdaten benötigt wird.",
   "logoutButton": "Abmelden",
+  "continueButton": "Surfen starten",
   "loadingMessage": "Ihre Anfrage wird verarbeitet...",
   "logoutConfirmTitle": "Vom Netzwerk abmelden?",
   "logoutConfirmDescription": "Dadurch wird Ihre aktuelle Sitzung beendet und Sie werden vom ATS-Netzwerk getrennt.",

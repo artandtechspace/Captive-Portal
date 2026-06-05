@@ -38,6 +38,7 @@
   "anonymousButton": "Sign in anonymously",
   "anonymousDescription": "Anonymous access is available when short-term connectivity is required and no personal credentials are provided.",
   "logoutButton": "Sign out",
+  "continueButton": "Start surfing",
   "loadingMessage": "Processing your request...",
   "logoutConfirmTitle": "Sign out from the network?",
   "logoutConfirmDescription": "This will end your current session and disconnect you from the ATS network.",
