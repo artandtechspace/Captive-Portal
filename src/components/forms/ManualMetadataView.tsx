@@ -1,6 +1,6 @@
 'use client'
 
-import {useCallback, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {Button} from "@/components/ui/button"
 import {Copy} from 'lucide-react'
 
@@ -21,17 +21,28 @@ export default function ManualMetadataView({
                                                className,
                                            }: ManualMetadataViewProps) {
     const [copied, setCopied] = useState(false)
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const handleCopy = useCallback(async () => {
         try {
             await navigator.clipboard.writeText(String(metadata ?? ''))
             setCopied(true)
-            const timer = setTimeout(() => setCopied(false), 1500)
-            return () => clearTimeout(timer)
+            if (timerRef.current) {
+                clearTimeout(timerRef.current)
+            }
+            timerRef.current = setTimeout(() => setCopied(false), 1500)
         } catch (err) {
             console.error('Copy failed', err)
         }
     }, [metadata])
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current)
+            }
+        }
+    }, [])
 
     return (
         <div className={className}>

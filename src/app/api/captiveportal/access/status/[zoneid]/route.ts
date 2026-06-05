@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { handleStatus } from "../../../mockPortal";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export function generateStaticParams() {
     return [{ zoneid: "mock" }];

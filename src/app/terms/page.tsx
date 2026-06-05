@@ -4,10 +4,11 @@ import * as React from "react";
 
 import TermsContent from "./terms-content";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useTranslations } from "@/lib/i18n";
 
 export default function TermsPage() {
-  const [deContent, setDeContent] = React.useState<string>("");
-  const [enContent, setEnContent] = React.useState<string>("");
+  const { locale } = useTranslations();
+  const [content, setContent] = React.useState<string>("");
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -15,22 +16,19 @@ export default function TermsPage() {
 
     const load = async () => {
       try {
-        const [deRes, enRes] = await Promise.all([
-          fetch("/terms/terms.de.md", { cache: "force-cache" }),
-          fetch("/terms/terms.en.md", { cache: "force-cache" }),
-        ]);
+        const res = await fetch(`/terms/terms.${locale}.md`, { cache: "force-cache" });
 
-        if (!deRes.ok || !enRes.ok) {
+        if (!res.ok) {
           throw new Error(
-            `Failed to load terms (de: ${deRes.status}, en: ${enRes.status})`,
+            `Failed to load terms (${locale}: ${res.status})`,
           );
         }
 
-        const [de, en] = await Promise.all([deRes.text(), enRes.text()]);
+        const text = await res.text();
 
         if (cancelled) return;
-        setDeContent(de);
-        setEnContent(en);
+        setContent(text);
+        setError(null);
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "Failed to load terms.");
@@ -41,7 +39,7 @@ export default function TermsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   return (
     <AppLayout contentClassName="max-w-3xl">
@@ -50,7 +48,7 @@ export default function TermsPage() {
           {error}
         </div>
       ) : (
-        <TermsContent deContent={deContent} enContent={enContent} />
+        <TermsContent content={content} />
       )}
     </AppLayout>
   );

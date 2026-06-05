@@ -1,17 +1,17 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useForm, type UseFormReturn} from 'react-hook-form';
 
 import type {LoginFormValues} from '@/components/login/PasswordLoginForm';
-import {useToast} from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
+import { CaptivePortalClient } from '@/lib/api/captivePortalClient';
 import {
     type AuthorizedClientStatusResponse,
-    CaptivePortalClient,
     ClientState,
     type ClientStatusResponse,
     type LogonRequest,
-} from '@/lib/api';
+} from '@/lib/api/dtos';
 import {useTranslations} from '@/lib/i18n';
 
 const client = new CaptivePortalClient();
@@ -54,16 +54,22 @@ type UseCaptivePortalLoginResult = {
 };
 
 export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
-    const [searchParams, setSearchParams] = useState<URLSearchParams>(() => {
+    const searchParams = useMemo(() => {
         if (typeof window !== 'undefined') {
             return new URLSearchParams(window.location.search);
         }
         return new URLSearchParams();
-    });
+    }, []);
     const {t} = useTranslations();
     const {toast} = useToast();
 
-    const [zoneId, setZoneId] = useState('');
+    const [zoneId] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            const globalZoneId = (window as Window & { zoneid?: string }).zoneid;
+            return typeof globalZoneId === 'string' ? globalZoneId : '';
+        }
+        return '';
+    });
     const [state, setState] = useState<LoginState>('checking');
     const [clientStatus, setClientStatus] = useState<ClientStatusResponse | null>(null);
     const [busy, setBusy] = useState(false);
@@ -287,16 +293,14 @@ export function useCaptivePortalLogin(): UseCaptivePortalLoginResult {
         }
     }, [busy, toastError, translateString, withZone]);
 
+    const checkStatusRef = useRef(checkStatus);
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setSearchParams(new URLSearchParams(window.location.search));
-        }
-        if (typeof window !== 'undefined') {
-            const globalZoneId = (window as Window & { zoneid?: string }).zoneid;
-            setZoneId(typeof globalZoneId === 'string' ? globalZoneId : '');
-        }
-        void checkStatus();
+        checkStatusRef.current = checkStatus;
     }, [checkStatus]);
+
+    useEffect(() => {
+        void checkStatusRef.current();
+    }, [zoneId]);
 
     useEffect(() => {
         const pageTitle = translateString('pageTitle', 'WiFi Login');

@@ -88,7 +88,7 @@ export function LogoutSection({
                         className="mt-2 space-y-3 rounded-md border border-dashed border-muted-foreground/40 p-3 text-xs text-muted-foreground animate-in slide-in-from-top-2 fade-in duration-200"
                     >
                         <ManualMetadataView
-                            metadata={JSON.stringify(details)}
+                            metadata={JSON.stringify(details, null, 2)}
                             label={undefined}
                         />
                     </CollapsibleContent>

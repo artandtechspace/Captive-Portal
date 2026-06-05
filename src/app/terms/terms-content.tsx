@@ -56,7 +56,7 @@ function resolveDictionary(locale: Locale) {
     return TERMS_DICTIONARY[locale] ?? TERMS_DICTIONARY.de;
 }
 
-export default function TermsContent({deContent, enContent}: { deContent: string; enContent: string }) {
+export default function TermsContent({content}: { content: string }) {
     const {locale} = useTranslations();
     const dictionary = resolveDictionary(locale);
     const {t} = useTranslation();
@@ -80,7 +80,7 @@ export default function TermsContent({deContent, enContent}: { deContent: string
         [dictionary.dateLocale],
     );
 
-    const termsContent = locale === "en" ? enContent : deContent;
+    const termsContent = content;
 
     return (
             <Card className="bg-background">

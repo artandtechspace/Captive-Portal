@@ -97,7 +97,7 @@ export function I18nProvider({children, initialLocale}: { children: ReactNode; i
         }
 
         try {
-            document.cookie = `locale=${encodeURIComponent(locale)}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+            document.cookie = `locale=${encodeURIComponent(locale)}; Path=/; SameSite=Lax`;
             document.documentElement.setAttribute("lang", locale);
         } catch {
             // ignore persistence errors
