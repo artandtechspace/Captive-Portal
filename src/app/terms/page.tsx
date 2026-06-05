@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ViewTransition } from "react";
 
 import TermsContent from "./terms-content";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -42,14 +43,28 @@ export default function TermsPage() {
   }, [locale]);
 
   return (
-    <AppLayout contentClassName="max-w-3xl">
-      {error ? (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          {error}
-        </div>
-      ) : (
-        <TermsContent content={content} />
-      )}
-    </AppLayout>
+    <ViewTransition
+      enter={{
+        "nav-forward": "nav-forward",
+        "nav-back": "nav-back",
+        default: "none",
+      }}
+      exit={{
+        "nav-forward": "nav-forward",
+        "nav-back": "nav-back",
+        default: "none",
+      }}
+      default="none"
+    >
+      <AppLayout contentClassName="max-w-3xl">
+        {error ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            {error}
+          </div>
+        ) : (
+          <TermsContent content={content} />
+        )}
+      </AppLayout>
+    </ViewTransition>
   );
 }

@@ -126,6 +126,7 @@ export function PasswordLoginForm({form, busy, translateString, termsAgreement, 
                             href="/terms"
                             target="_self"
                             rel="noopener noreferrer"
+                            transitionTypes={['nav-forward']}
                         >
                             {termsAgreement.linkText ?? translateString('termsLinkLabel', 'Terms of Use')}
                         </Link>{' '}

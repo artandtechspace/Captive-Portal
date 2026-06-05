@@ -115,7 +115,7 @@ export default function TermsContent({content}: { content: string }) {
 function BackButton({label}: { label: string }) {
     return (
         <Button asChild variant="outline">
-            <Link href="/">{label}</Link>
+            <Link href="/" transitionTypes={['nav-back']}>{label}</Link>
         </Button>
     );
 }
